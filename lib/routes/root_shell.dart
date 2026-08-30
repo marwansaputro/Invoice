@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import '../core/animations/app_motion.dart';
 import '../core/theme/app_theme.dart';
@@ -102,23 +104,33 @@ class _FloatingNavBar extends StatelessWidget {
         clipBehavior: Clip.none,
         alignment: Alignment.topCenter,
         children: [
-          Container(
-            height: 68,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(34),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 24, offset: const Offset(0, 8)),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(child: _navItem(0)),
-                Expanded(child: _navItem(1)),
-                const SizedBox(width: 68),
-                Expanded(child: _navItem(2)),
-                Expanded(child: _navItem(3)),
-              ],
+          ClipRRect(
+            borderRadius: BorderRadius.circular(34),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+              child: Builder(builder: (context) {
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                return Container(
+                  height: 68,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withOpacity(0.08) : Colors.white.withOpacity(0.68),
+                    borderRadius: BorderRadius.circular(34),
+                    border: Border.all(color: Colors.white.withOpacity(isDark ? 0.10 : 0.6)),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(isDark ? 0.25 : 0.08), blurRadius: 24, offset: const Offset(0, 8)),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(child: _navItem(0)),
+                      Expanded(child: _navItem(1)),
+                      const SizedBox(width: 68),
+                      Expanded(child: _navItem(2)),
+                      Expanded(child: _navItem(3)),
+                    ],
+                  ),
+                );
+              }),
             ),
           ),
           Positioned(

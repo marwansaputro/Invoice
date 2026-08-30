@@ -6,20 +6,22 @@ import 'package:google_fonts/google_fonts.dart';
 class AppColors {
   AppColors._();
 
-  static const primary = Color(0xFF344F68);
-  static const secondary = Color(0xFFF46B6B);
-  static const background = Color(0xFFF7F8FA);
+  static const primary = Color(0xFF150E45);
+  static const secondary = Color(0xFF0D4DA1);
+  static const accent = Color(0xFFF5941E);
+  static const skyBlue = Color(0xFF79C7EC);
+  static const background = Color(0xFFF8F9FC);
   static const surface = Color(0xFFFFFFFF);
-  static const textPrimary = Color(0xFF202124);
+  static const textPrimary = Color(0xFF1A1A2E);
   static const textSecondary = Color(0xFF6B7280);
-  static const success = Color(0xFF35B779);
-  static const warning = Color(0xFFF5A623);
+  static const success = Color(0xFF2ECC71);
+  static const warning = Color(0xFFF5941E);
   static const danger = Color(0xFFE95B5B);
 
-  static const darkBackground = Color(0xFF101418);
-  static const darkSurface = Color(0xFF181D22);
+  static const darkBackground = Color(0xFF0B0B1F);
+  static const darkSurface = Color(0xFF16162E);
   static const darkText = Color(0xFFF5F5F5);
-  static const darkPrimary = Color(0xFF7DA4C7);
+  static const darkPrimary = Color(0xFF79C7EC);
 }
 
 class AppTheme {
@@ -39,13 +41,15 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: base,
-      scaffoldBackgroundColor: AppColors.background,
+      // Transparent so the blurred GlassBackdrop shows through every
+      // screen — the whole point of the glassmorphism treatment.
+      scaffoldBackgroundColor: Colors.transparent,
       textTheme: textTheme.apply(
         bodyColor: AppColors.textPrimary,
         displayColor: AppColors.textPrimary,
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.background,
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
@@ -58,11 +62,11 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: AppColors.surface,
+        color: Colors.white.withOpacity(0.62),
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: Colors.black.withOpacity(0.04)),
+          side: BorderSide(color: Colors.white.withOpacity(0.55)),
         ),
         margin: EdgeInsets.zero,
       ),
@@ -92,15 +96,15 @@ class AppTheme {
         fillColor: AppColors.surface,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(20),
           borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
         ),
         hintStyle: const TextStyle(color: AppColors.textSecondary),
@@ -129,13 +133,13 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: base,
-      scaffoldBackgroundColor: AppColors.darkBackground,
+      scaffoldBackgroundColor: Colors.transparent,
       textTheme: textTheme.apply(
         bodyColor: AppColors.darkText,
         displayColor: AppColors.darkText,
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.darkBackground,
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
@@ -148,11 +152,11 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: AppColors.darkSurface,
+        color: Colors.white.withOpacity(0.07),
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: Colors.white.withOpacity(0.06)),
+          side: BorderSide(color: Colors.white.withOpacity(0.12)),
         ),
         margin: EdgeInsets.zero,
       ),
@@ -180,15 +184,15 @@ class AppTheme {
         fillColor: AppColors.darkSurface,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide(color: Colors.white.withOpacity(0.10)),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide(color: Colors.white.withOpacity(0.10)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(20),
           borderSide: const BorderSide(color: AppColors.darkPrimary, width: 1.4),
         ),
         hintStyle: const TextStyle(color: Colors.white54),

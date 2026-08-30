@@ -85,7 +85,7 @@ class AppButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
         decoration: BoxDecoration(
           color: bg,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(22),
           border: border != null ? Border.fromBorderSide(border) : null,
         ),
         alignment: Alignment.center,
@@ -111,21 +111,28 @@ class AppCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final content = Container(
-      padding: padding,
-      decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.dividerColor),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(theme.brightness == Brightness.dark ? 0.18 : 0.04),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
+    final isDark = theme.brightness == Brightness.dark;
+    final content = ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: theme.cardTheme.color,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(isDark ? 0.10 : 0.55)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.22 : 0.05),
+                blurRadius: 22,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-        ],
+          child: child,
+        ),
       ),
-      child: child,
     );
     if (onTap == null) return content;
     return PressableScale(onTap: onTap, scaleDown: 0.98, child: content);
@@ -458,36 +465,44 @@ class AppBottomSheetShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 30, offset: const Offset(0, -8)),
-          ],
-        ),
-        child: SafeArea(
-          top: false,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface.withOpacity(0.78) : Colors.white.withOpacity(0.82),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              border: Border(top: BorderSide(color: Colors.white.withOpacity(isDark ? 0.10 : 0.6))),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 30, offset: const Offset(0, -8)),
+              ],
+            ),
+            child: SafeArea(
+              top: false,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      Flexible(child: child),
+                    ],
                   ),
-                  Flexible(child: child),
-                ],
+                ),
               ),
             ),
           ),

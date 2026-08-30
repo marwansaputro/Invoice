@@ -1,8 +1,7 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
+import 'core/widgets/glass_backdrop.dart';
 import 'data/database/app_database.dart';
 import 'data/dummy_data.dart';
 import 'data/repositories/repositories.dart';
@@ -10,25 +9,6 @@ import 'routes/root_shell.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  ErrorWidget.builder = (details) => Container(
-        color: Colors.red,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.all(12),
-        child: Text(
-          details.exceptionAsString(),
-          style: const TextStyle(color: Colors.white, fontSize: 10),
-        ),
-      );
-  FlutterError.onError = (details) {
-    FlutterError.presentError(details);
-    // ignore: avoid_print
-    print('FLUTTER ERROR: ${details.exceptionAsString()}\n${details.stack}');
-  };
-  ui.PlatformDispatcher.instance.onError = (error, stack) {
-    // ignore: avoid_print
-    print('PLATFORM ERROR: $error\n$stack');
-    return true;
-  };
   await AppDatabase.init();
   await DummyData.seedIfEmpty();
   runApp(const ProviderScope(child: InvoicelyApp()));
@@ -57,6 +37,14 @@ class InvoicelyApp extends ConsumerWidget {
       themeMode: mode,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
+      // Paints the soft blurred colour blobs behind every screen so the
+      // glassmorphism cards/nav/sheets have something to frost over.
+      builder: (context, child) => Stack(
+        children: [
+          const Positioned.fill(child: GlassBackdrop()),
+          if (child != null) child,
+        ],
+      ),
       home: const RootShell(),
     );
   }

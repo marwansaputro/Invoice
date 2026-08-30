@@ -21,7 +21,7 @@ class PdfGenerator {
   }) async {
     final doc = pw.Document();
 
-    final primary = PdfColor.fromInt(0xFF344F68);
+    final primary = PdfColor.fromInt(0xFF150E45);
     final secondaryGrey = PdfColor.fromInt(0xFF6B7280);
     final dark = PdfColor.fromInt(0xFF202124);
     final danger = PdfColor.fromInt(0xFFE95B5B);
@@ -265,7 +265,7 @@ class PdfGenerator {
                 pw.SizedBox(height: 4),
                 pw.Text(
                   invoice.isApproved ? 'Approved by ${invoice.approverName.isNotEmpty ? invoice.approverName : "customer"}' : 'Pending approval',
-                  style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: invoice.isApproved ? PdfColor.fromInt(0xFF35B779) : secondaryGrey),
+                  style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: invoice.isApproved ? PdfColor.fromInt(0xFF2ECC71) : secondaryGrey),
                 ),
               ],
             ],
