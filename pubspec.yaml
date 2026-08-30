@@ -1,0 +1,32 @@
+name: invoicely
+description: "Invoicely — Create. Send. Get Paid. A modern invoice management & generator app."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^2.5.1
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  path_provider: ^2.1.4
+  pdf: ^3.11.1
+  printing: ^5.13.1
+  share_plus: ^10.0.2
+  intl: ^0.19.0
+  uuid: ^4.4.2
+  google_fonts: ^6.2.1
+  image_picker: ^1.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
