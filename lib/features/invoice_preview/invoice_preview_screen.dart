@@ -120,16 +120,18 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFF1F3F6),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF1F3F6),
-        title: const Text('Preview'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Preview', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
             icon: _generatingPdf
                 ? const SizedBox(
                     height: 18,
                     width: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2))
-                : const Icon(Icons.picture_as_pdf_rounded),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Icon(Icons.picture_as_pdf_rounded, color: Colors.white),
             onPressed: _generatingPdf ? null : _generateAndOpenPdf,
           ),
           IconButton(
@@ -142,7 +144,7 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen>
                     ? Icons.favorite_rounded
                     : Icons.favorite_border_rounded,
                 key: ValueKey(invoice.isFavorite),
-                color: invoice.isFavorite ? AppColors.secondary : null,
+                color: invoice.isFavorite ? AppColors.secondary : Colors.white,
               ),
             ),
             onPressed: () => ref

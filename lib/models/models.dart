@@ -302,6 +302,7 @@ class BusinessProfile extends HiveObject {
   String bankName;
   String bankAccountName;
   String bankAccountNumber;
+  List<String> acceptedPaymentMethods;
 
   BusinessProfile({
     this.businessName = 'Purnama Eskrim Powder',
@@ -311,7 +312,8 @@ class BusinessProfile extends HiveObject {
     this.bankName = 'BCA',
     this.bankAccountName = 'CV. Maurindo Purnama Abadi',
     this.bankAccountNumber = '',
-  });
+    List<String>? acceptedPaymentMethods,
+  }) : acceptedPaymentMethods = acceptedPaymentMethods ?? ['Bank Transfer'];
 }
 
 class BusinessProfileAdapter extends TypeAdapter<BusinessProfile> {
@@ -332,13 +334,14 @@ class BusinessProfileAdapter extends TypeAdapter<BusinessProfile> {
       bankName: fields[4] as String? ?? '',
       bankAccountName: fields[5] as String? ?? '',
       bankAccountNumber: fields[6] as String? ?? '',
+      acceptedPaymentMethods: (fields[7] as List?)?.cast<String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, BusinessProfile obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.businessName)
       ..writeByte(1)
@@ -352,7 +355,9 @@ class BusinessProfileAdapter extends TypeAdapter<BusinessProfile> {
       ..writeByte(5)
       ..write(obj.bankAccountName)
       ..writeByte(6)
-      ..write(obj.bankAccountNumber);
+      ..write(obj.bankAccountNumber)
+      ..writeByte(7)
+      ..write(obj.acceptedPaymentMethods);
   }
 }
 

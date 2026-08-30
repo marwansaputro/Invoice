@@ -43,7 +43,8 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
       case 'Paid':
         return invoice.status == InvoiceStatus.paid;
       case 'Unpaid':
-        return invoice.status == InvoiceStatus.unpaid || invoice.status == InvoiceStatus.partial;
+        return invoice.status == InvoiceStatus.unpaid ||
+            invoice.status == InvoiceStatus.partial;
       case 'Overdue':
         return invoice.status == InvoiceStatus.overdue;
       case 'Draft':
@@ -70,145 +71,171 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
       final matchesFilter = _matchesFilter(inv);
       final matchesQuery = _query.isEmpty ||
           inv.invoiceNumber.toLowerCase().contains(_query.toLowerCase()) ||
-          customerName(inv.customerId).toLowerCase().contains(_query.toLowerCase());
+          customerName(inv.customerId)
+              .toLowerCase()
+              .contains(_query.toLowerCase());
       return matchesFilter && matchesQuery;
     }).toList();
 
-    return SafeArea(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: AnimatedEntry(
-              offsetY: 10,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text('Invoices', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-                        SizedBox(height: 2),
-                        Text('Manage all your invoices', style: TextStyle(color: AppColors.textSecondary, fontSize: 13.5)),
-                      ],
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: AnimatedEntry(
+                offsetY: 10,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text('Invoices',
+                              style: TextStyle(
+                                  fontSize: 22, fontWeight: FontWeight.w800)),
+                          SizedBox(height: 2),
+                          Text('Manage all your invoices',
+                              style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13.5)),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: _SearchBar(
-              controller: _searchController,
-              expanded: _searching,
-              onToggle: () {
-                setState(() {
-                  _searching = !_searching;
-                  if (!_searching) {
-                    _searchController.clear();
-                    _query = '';
-                  }
-                });
-              },
-              onChanged: (v) => setState(() => _query = v),
-            ),
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            height: 40,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
+            const SizedBox(height: 16),
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: _filters.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, i) {
-                final f = _filters[i];
-                final selected = f == _filter;
-                return PressableScale(
-                  onTap: () => setState(() => _filter = f),
-                  child: AnimatedContainer(
-                    duration: AppDurations.fast,
-                    curve: AppCurves.smooth,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-                    decoration: BoxDecoration(
-                      color: selected ? AppColors.primary : Theme.of(context).cardTheme.color,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: selected ? AppColors.primary : Theme.of(context).dividerColor),
-                    ),
-                    child: Text(
-                      f,
-                      style: TextStyle(
-                        color: selected ? Colors.white : AppColors.textSecondary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                );
-              },
+              child: _SearchBar(
+                controller: _searchController,
+                expanded: _searching,
+                onToggle: () {
+                  setState(() {
+                    _searching = !_searching;
+                    if (!_searching) {
+                      _searchController.clear();
+                      _query = '';
+                    }
+                  });
+                },
+                onChanged: (v) => setState(() => _query = v),
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: _loading
-                ? ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
-                    itemCount: 6,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (_, __) => const InvoiceCardSkeleton(),
-                  )
-                : filtered.isEmpty
-                    ? EmptyState(
-                        icon: Icons.search_off_rounded,
-                        title: 'No invoices found',
-                        message: 'Try a different search term or filter.',
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
-                        itemCount: filtered.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, i) {
-                          final invoice = filtered[i];
-                          return AnimatedEntry(
-                            key: ValueKey(invoice.id),
-                            delay: Duration(milliseconds: 40 * i.clamp(0, 8)),
-                            child: Dismissible(
-                              key: ValueKey('dismiss-${invoice.id}'),
-                              direction: DismissDirection.endToStart,
-                              background: Container(
-                                alignment: Alignment.centerRight,
-                                padding: const EdgeInsets.only(right: 20),
-                                decoration: BoxDecoration(
-                                  color: AppColors.danger.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: const Icon(Icons.delete_rounded, color: AppColors.danger),
-                              ),
-                              onDismissed: (_) {
-                                final removed = invoice;
-                                ref.read(invoiceRepositoryProvider.notifier).delete(invoice.id);
-                                AppSnackbar.show(
-                                  context,
-                                  message: 'Invoice deleted',
-                                  icon: Icons.delete_rounded,
-                                  actionLabel: 'UNDO',
-                                  onAction: () => ref.read(invoiceRepositoryProvider.notifier).restore(removed),
-                                );
-                              },
-                              child: InvoiceListCard(
-                                invoice: invoice,
-                                customerName: customerName(invoice.customerId),
-                                onTap: () => Navigator.of(context)
-                                    .push(SlideFadeRoute(page: InvoiceDetailScreen(invoiceId: invoice.id))),
-                              ),
-                            ),
-                          );
-                        },
+            const SizedBox(height: 14),
+            SizedBox(
+              height: 40,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: _filters.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, i) {
+                  final f = _filters[i];
+                  final selected = f == _filter;
+                  return PressableScale(
+                    onTap: () => setState(() => _filter = f),
+                    child: AnimatedContainer(
+                      duration: AppDurations.fast,
+                      curve: AppCurves.smooth,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 9),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppColors.primary
+                            : Theme.of(context).cardTheme.color,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                            color: selected
+                                ? AppColors.primary
+                                : Theme.of(context).dividerColor),
                       ),
-          ),
-        ],
+                      child: Text(
+                        f,
+                        style: TextStyle(
+                          color:
+                              selected ? Colors.white : AppColors.textSecondary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: _loading
+                  ? ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
+                      itemCount: 6,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (_, __) => const InvoiceCardSkeleton(),
+                    )
+                  : filtered.isEmpty
+                      ? EmptyState(
+                          icon: Icons.search_off_rounded,
+                          title: 'No invoices found',
+                          message: 'Try a different search term or filter.',
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
+                          itemCount: filtered.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, i) {
+                            final invoice = filtered[i];
+                            return AnimatedEntry(
+                              key: ValueKey(invoice.id),
+                              delay: Duration(milliseconds: 40 * i.clamp(0, 8)),
+                              child: Dismissible(
+                                key: ValueKey('dismiss-${invoice.id}'),
+                                direction: DismissDirection.endToStart,
+                                background: Container(
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(right: 20),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.danger.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Icon(Icons.delete_rounded,
+                                      color: AppColors.danger),
+                                ),
+                                onDismissed: (_) {
+                                  final removed = invoice;
+                                  ref
+                                      .read(invoiceRepositoryProvider.notifier)
+                                      .delete(invoice.id);
+                                  AppSnackbar.show(
+                                    context,
+                                    message: 'Invoice deleted',
+                                    icon: Icons.delete_rounded,
+                                    actionLabel: 'UNDO',
+                                    onAction: () => ref
+                                        .read(
+                                            invoiceRepositoryProvider.notifier)
+                                        .restore(removed),
+                                  );
+                                },
+                                child: InvoiceListCard(
+                                  invoice: invoice,
+                                  customerName:
+                                      customerName(invoice.customerId),
+                                  onTap: () => Navigator.of(context).push(
+                                      SlideFadeRoute(
+                                          page: InvoiceDetailScreen(
+                                              invoiceId: invoice.id))),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -249,7 +276,8 @@ class _SearchBar extends StatelessWidget {
             onPressed: onToggle,
             icon: AnimatedSwitcher(
               duration: AppDurations.fast,
-              transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+              transitionBuilder: (child, anim) =>
+                  ScaleTransition(scale: anim, child: child),
               child: Icon(
                 expanded ? Icons.arrow_back_rounded : Icons.search_rounded,
                 key: ValueKey(expanded),
@@ -278,7 +306,9 @@ class _SearchBar extends StatelessWidget {
           if (!expanded)
             const Padding(
               padding: EdgeInsets.only(right: 16),
-              child: Text('Search invoice...', style: TextStyle(color: AppColors.textSecondary, fontSize: 13.5)),
+              child: Text('Search invoice...',
+                  style: TextStyle(
+                      color: AppColors.textSecondary, fontSize: 13.5)),
             ),
         ],
       ),

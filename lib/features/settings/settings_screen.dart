@@ -103,7 +103,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _SettingsItem(
                   icon: Icons.account_balance_rounded,
                   label: 'Payment Methods',
-                  trailing: business.bankName,
+                  trailing: business.acceptedPaymentMethods.isEmpty
+                      ? business.bankName
+                      : business.acceptedPaymentMethods.length == 1
+                          ? business.acceptedPaymentMethods.first
+                          : '${business.acceptedPaymentMethods.length} methods',
                   onTap: _editBusinessProfile,
                 ),
                 _SettingsItem(
@@ -240,7 +244,7 @@ class _GroupedSettingsCard extends StatelessWidget {
             children: [
               for (int i = 0; i < items.length; i++) ...[
                 _SettingsRow(item: items[i]),
-                if (i != items.length - 1) const Divider(height: 1, indent: 54),
+                if (i != items.length - 1) const Divider(height: 1, indent: 70, endIndent: 16),
               ],
             ],
           ),
@@ -259,7 +263,7 @@ class _SettingsRow extends StatelessWidget {
     return InkWell(
       onTap: item.trailingWidget != null ? null : item.onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 13),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         child: Row(
           children: [
             Icon(item.icon, size: 20, color: AppColors.primary),
@@ -330,6 +334,9 @@ class _BusinessProfileSheetState extends State<BusinessProfileSheet> {
   late final TextEditingController _bankName;
   late final TextEditingController _bankAccountName;
   late final TextEditingController _bankAccountNumber;
+  late final Set<String> _selectedMethods;
+
+  static const _availableMethods = ['Bank Transfer', 'Cash', 'QRIS', 'E-Wallet'];
 
   @override
   void initState() {
@@ -342,6 +349,17 @@ class _BusinessProfileSheetState extends State<BusinessProfileSheet> {
     _bankName = TextEditingController(text: b.bankName);
     _bankAccountName = TextEditingController(text: b.bankAccountName);
     _bankAccountNumber = TextEditingController(text: b.bankAccountNumber);
+    _selectedMethods = b.acceptedPaymentMethods.toSet();
+  }
+
+  void _toggleMethod(String method) {
+    setState(() {
+      if (_selectedMethods.contains(method)) {
+        if (_selectedMethods.length > 1) _selectedMethods.remove(method);
+      } else {
+        _selectedMethods.add(method);
+      }
+    });
   }
 
   @override
@@ -364,7 +382,8 @@ class _BusinessProfileSheetState extends State<BusinessProfileSheet> {
       ..email = _email.text.trim()
       ..bankName = _bankName.text.trim()
       ..bankAccountName = _bankAccountName.text.trim()
-      ..bankAccountNumber = _bankAccountNumber.text.trim();
+      ..bankAccountNumber = _bankAccountNumber.text.trim()
+      ..acceptedPaymentMethods = _selectedMethods.toList();
     await widget.business.save();
     if (mounted) {
       Navigator.pop(context);
@@ -391,6 +410,18 @@ class _BusinessProfileSheetState extends State<BusinessProfileSheet> {
           const SizedBox(height: 18),
           const Text('PAYMENT METHOD', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 0.6)),
           const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _availableMethods
+                .map((m) => _MethodChip(
+                      label: m,
+                      selected: _selectedMethods.contains(m),
+                      onTap: () => _toggleMethod(m),
+                    ))
+                .toList(),
+          ),
+          const SizedBox(height: 16),
           AppTextField(label: 'Bank Name', controller: _bankName),
           const SizedBox(height: 14),
           AppTextField(label: 'Account Name', controller: _bankAccountName),
@@ -399,6 +430,45 @@ class _BusinessProfileSheetState extends State<BusinessProfileSheet> {
           const SizedBox(height: 22),
           AppButton(label: 'Save Changes', icon: Icons.check_rounded, expand: true, onPressed: _save),
         ],
+      ),
+    );
+  }
+}
+
+class _MethodChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _MethodChip({required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return PressableScale(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: selected ? AppColors.primary : Theme.of(context).dividerColor),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (selected) ...[
+              const Icon(Icons.check_rounded, size: 15, color: Colors.white),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                color: selected ? Colors.white : AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
