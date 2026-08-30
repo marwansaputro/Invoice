@@ -28,7 +28,7 @@ class _RootShellState extends State<RootShell> {
 
   @override
   Widget build(BuildContext context) {
-    final showFab = _index == 0 || _index == 1;
+    const showFab = true;
     return Scaffold(
       extendBody: true,
       body: Stack(

@@ -192,6 +192,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
         ],
       ),
     );
+    controller.dispose();
     if (result != null) onSaved(result);
   }
 
@@ -303,7 +304,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             // Invoice # / Due date
             _FlatRow(
               icon: Icons.tag_rounded,
-              iconColor: const Color(0xFF8B5CF6),
+              iconColor: AppColors.secondary,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -336,7 +337,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             const SizedBox(height: 10),
             _FlatRow(
               icon: Icons.calendar_today_rounded,
-              iconColor: const Color(0xFF29A9EA),
+              iconColor: AppColors.primary,
               onTap: () => _pickDate(isDueDate: false),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -349,7 +350,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             const SizedBox(height: 10),
             _FlatRow(
               icon: Icons.info_rounded,
-              iconColor: const Color(0xFF29A9EA),
+              iconColor: AppColors.primary,
               onTap: _editBusinessInfo,
               trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
               child: Text(business.businessName.isNotEmpty ? business.businessName : 'Business Info',
@@ -358,7 +359,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             const SizedBox(height: 10),
             _FlatRow(
               icon: Icons.person_rounded,
-              iconColor: const Color(0xFFF5A623),
+              iconColor: AppColors.warning,
               onTap: _pickCustomer,
               trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
               child: Text(
@@ -373,7 +374,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             const SizedBox(height: 10),
             _FlatRow(
               icon: Icons.bookmark_rounded,
-              iconColor: const Color(0xFF8B5CF6),
+              iconColor: AppColors.secondary,
               child: TextField(
                 controller: _poController,
                 style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
@@ -414,21 +415,21 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             // Adjustments
             _FlatRow(
               icon: Icons.percent_rounded,
-              iconColor: const Color(0xFFB964F7),
+              iconColor: AppColors.secondary,
               onTap: () => _editAmount(title: 'Discount', value: _discount, onSaved: (v) => setState(() => _discount = v)),
               child: _AmountRowContent(label: 'Discount', value: _discount),
             ),
             const SizedBox(height: 10),
             _FlatRow(
               icon: Icons.receipt_long_rounded,
-              iconColor: const Color(0xFF29A9EA),
+              iconColor: AppColors.primary,
               onTap: () => _editAmount(title: 'Tax', value: _tax, onSaved: (v) => setState(() => _tax = v)),
               child: _AmountRowContent(label: 'Tax', value: _tax),
             ),
             const SizedBox(height: 10),
             _FlatRow(
               icon: Icons.local_shipping_rounded,
-              iconColor: const Color(0xFF35B779),
+              iconColor: AppColors.success,
               onTap: () => _editAmount(title: 'Shipping', value: _shipping, onSaved: (v) => setState(() => _shipping = v)),
               child: _AmountRowContent(label: 'Shipping', value: _shipping),
             ),
@@ -441,7 +442,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             const SizedBox(height: 10),
             _FlatRow(
               icon: Icons.payments_rounded,
-              iconColor: const Color(0xFF35B779),
+              iconColor: AppColors.success,
               child: _AmountRowContent(label: 'Payments', value: _amountPaid),
             ),
             const SizedBox(height: 10),
@@ -451,7 +452,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             // Attachment
             _FlatRow(
               icon: Icons.image_rounded,
-              iconColor: const Color(0xFF8B5CF6),
+              iconColor: AppColors.secondary,
               onTap: _pickAttachment,
               trailing: _attachmentBytes == null
                   ? const Icon(Icons.add_circle_outline_rounded, color: AppColors.textSecondary)
@@ -471,7 +472,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             // Payment instruction
             _FlatRow(
               icon: Icons.menu_book_rounded,
-              iconColor: const Color(0xFF29A9EA),
+              iconColor: AppColors.primary,
               onTap: _pickPaymentMethod,
               trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
               child: Column(
@@ -488,7 +489,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             // Signature
             _FlatRow(
               icon: Icons.draw_rounded,
-              iconColor: const Color(0xFF29A9EA),
+              iconColor: AppColors.primary,
               onTap: _openSignatureSheet,
               trailing: _signatureBytes != null
                   ? Image.memory(_signatureBytes!, height: 32, width: 60, fit: BoxFit.contain)
@@ -498,7 +499,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             const SizedBox(height: 10),
             _FlatRow(
               icon: Icons.verified_rounded,
-              iconColor: const Color(0xFF35B779),
+              iconColor: AppColors.success,
               trailing: Switch(value: _isApproved, onChanged: (v) => setState(() => _isApproved = v)),
               child: const Text('Approved by customer', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
             ),
@@ -506,7 +507,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
               const SizedBox(height: 10),
               _FlatRow(
                 icon: Icons.badge_rounded,
-                iconColor: const Color(0xFF35B779),
+                iconColor: AppColors.success,
                 child: TextField(
                   controller: _approverController,
                   style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
@@ -563,17 +564,16 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
-          child: AppButton(
-            label: 'Save & Preview',
-            icon: Icons.remove_red_eye_rounded,
-            expand: true,
-            loading: _saving,
-            onPressed: () => _save(andPreview: true),
-          ),
-        ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _saving ? null : () => _save(andPreview: true),
+        icon: _saving
+            ? const SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              )
+            : const Icon(Icons.visibility_rounded),
+        label: Text(_saving ? 'Saving...' : 'Save & Preview'),
       ),
     );
   }
