@@ -449,11 +449,16 @@ Future<T?> showAppBottomSheet<T>(
   BuildContext context, {
   required Widget child,
   bool isScrollControlled = true,
+  // Disable for sheets that host their own drag/pan gestures (e.g. a
+  // signature pad) — otherwise the sheet's built-in drag-to-dismiss
+  // recognizer competes with and swallows those strokes.
+  bool enableDrag = true,
 }) {
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: isScrollControlled,
     backgroundColor: Colors.transparent,
+    enableDrag: enableDrag,
     builder: (context) => AppBottomSheetShell(child: child),
   );
 }

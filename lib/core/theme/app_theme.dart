@@ -22,6 +22,18 @@ class AppColors {
   static const darkSurface = Color(0xFF16162E);
   static const darkText = Color(0xFFF5F5F5);
   static const darkPrimary = Color(0xFF79C7EC);
+
+  /// The brand-navy [primary] reads as near-black-on-black on dark
+  /// surfaces. Use this wherever an accent icon/text sits directly on a
+  /// theme-dependent card/background (not on a fixed navy or white
+  /// surface, which already has guaranteed contrast on its own).
+  static Color themedPrimary(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkPrimary : primary;
+
+  /// Same idea as [themedPrimary] but for spots that use the medium-blue
+  /// [secondary] tone, which is just as low-contrast on a dark card.
+  static Color themedSecondary(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? skyBlue : secondary;
 }
 
 class AppTheme {

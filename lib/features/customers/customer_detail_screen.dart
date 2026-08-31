@@ -61,9 +61,9 @@ class CustomerDetailScreen extends ConsumerWidget {
                   children: [
                     CircleAvatar(
                       radius: 38,
-                      backgroundColor: AppColors.primary.withOpacity(0.12),
+                      backgroundColor: AppColors.themedPrimary(context).withOpacity(0.16),
                       child: Text(customer.name.isNotEmpty ? customer.name[0].toUpperCase() : '?',
-                          style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 26)),
+                          style: TextStyle(color: AppColors.themedPrimary(context), fontWeight: FontWeight.w800, fontSize: 26)),
                     ),
                     const SizedBox(height: 12),
                     Text(customer.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 19)),
@@ -113,7 +113,7 @@ class CustomerDetailScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('Total Revenue', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                    MoneyText(value: totalRevenue, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: AppColors.primary)),
+                    MoneyText(value: totalRevenue, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: AppColors.themedPrimary(context))),
                   ],
                 ),
               ),
@@ -157,7 +157,7 @@ class _ContactRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: AppColors.primary),
+        Icon(icon, size: 18, color: AppColors.themedPrimary(context)),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -186,7 +186,7 @@ class _StatBox extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
       child: Column(
         children: [
-          Text(value, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: color ?? AppColors.textPrimary)),
+          Text(value, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: color)),
           const SizedBox(height: 4),
           Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600), textAlign: TextAlign.center),
         ],

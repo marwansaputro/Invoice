@@ -134,9 +134,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                             children: [
                               CircleAvatar(
                                 radius: 24,
-                                backgroundColor: AppColors.primary.withOpacity(0.10),
+                                backgroundColor: AppColors.themedPrimary(context).withOpacity(0.14),
                                 child: Text(customer.name.isNotEmpty ? customer.name[0].toUpperCase() : '?',
-                                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 16)),
+                                    style: TextStyle(color: AppColors.themedPrimary(context), fontWeight: FontWeight.w800, fontSize: 16)),
                               ),
                               const SizedBox(width: 14),
                               Expanded(

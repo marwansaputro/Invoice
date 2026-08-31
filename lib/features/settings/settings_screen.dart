@@ -136,7 +136,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   label: 'Notifications',
                   trailingWidget: Switch.adaptive(
                     value: settings.notificationsEnabled,
-                    activeColor: AppColors.primary,
+                    activeColor: AppColors.themedPrimary(context),
                     onChanged: (v) {
                       settings.notificationsEnabled = v;
                       settings.save();
@@ -266,7 +266,7 @@ class _SettingsRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         child: Row(
           children: [
-            Icon(item.icon, size: 20, color: AppColors.primary),
+            Icon(item.icon, size: 20, color: AppColors.themedPrimary(context)),
             const SizedBox(width: 16),
             Expanded(child: Text(item.label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5))),
             if (item.trailingWidget != null)
@@ -293,6 +293,7 @@ class _ThemeOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = AppColors.themedPrimary(context);
     return PressableScale(
       onTap: onTap,
       child: AnimatedContainer(
@@ -300,15 +301,15 @@ class _ThemeOption extends StatelessWidget {
         curve: AppCurves.smooth,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary.withOpacity(0.10) : Colors.transparent,
+          color: selected ? accent.withOpacity(0.10) : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: selected ? AppColors.primary : Theme.of(context).dividerColor),
+          border: Border.all(color: selected ? accent : Theme.of(context).dividerColor),
         ),
         child: Column(
           children: [
-            Icon(icon, size: 20, color: selected ? AppColors.primary : AppColors.textSecondary),
+            Icon(icon, size: 20, color: selected ? accent : AppColors.textSecondary),
             const SizedBox(height: 6),
-            Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: selected ? AppColors.primary : AppColors.textSecondary)),
+            Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: selected ? accent : AppColors.textSecondary)),
           ],
         ),
       ),
@@ -462,7 +463,7 @@ class _MethodChip extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: selected ? Colors.white : AppColors.textPrimary,
+                color: selected ? Colors.white : null,
                 fontWeight: FontWeight.w700,
                 fontSize: 13,
               ),
@@ -600,28 +601,29 @@ class _CurrencySheet extends StatelessWidget {
       children: [
         const Text('Select Currency', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         const SizedBox(height: 14),
-        ...currencies.map(
-          (c) => PressableScale(
+        ...currencies.map((c) {
+          final accent = AppColors.themedPrimary(context);
+          return PressableScale(
             scaleDown: 0.99,
             onTap: () => Navigator.pop(context, c),
             child: Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
               decoration: BoxDecoration(
-                color: c == current ? AppColors.primary.withOpacity(0.08) : Colors.transparent,
+                color: c == current ? accent.withOpacity(0.08) : Colors.transparent,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: c == current ? AppColors.primary : Theme.of(context).dividerColor),
+                border: Border.all(color: c == current ? accent : Theme.of(context).dividerColor),
               ),
               child: Row(
                 children: [
                   Text(c, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
                   const SizedBox(width: 12),
-                  if (c == current) const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 18),
+                  if (c == current) Icon(Icons.check_circle_rounded, color: accent, size: 18),
                 ],
               ),
             ),
-          ),
-        ),
+          );
+        }),
       ],
     );
   }

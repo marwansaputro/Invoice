@@ -207,6 +207,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
   Future<void> _openSignatureSheet() async {
     await showAppBottomSheet<void>(
       context,
+      enableDrag: false,
       child: _SignatureSheet(
         initialBytes: _signatureBytes,
         onChanged: (bytes) => setState(() => _signatureBytes = bytes),
@@ -304,7 +305,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             // Invoice # / Due date
             _FlatRow(
               icon: Icons.tag_rounded,
-              iconColor: AppColors.secondary,
+              iconColor: AppColors.themedSecondary(context),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -337,7 +338,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             const SizedBox(height: 10),
             _FlatRow(
               icon: Icons.calendar_today_rounded,
-              iconColor: AppColors.primary,
+              iconColor: AppColors.themedPrimary(context),
               onTap: () => _pickDate(isDueDate: false),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -350,7 +351,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             const SizedBox(height: 10),
             _FlatRow(
               icon: Icons.info_rounded,
-              iconColor: AppColors.primary,
+              iconColor: AppColors.themedPrimary(context),
               onTap: _editBusinessInfo,
               trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
               child: Text(business.businessName.isNotEmpty ? business.businessName : 'Business Info',
@@ -367,14 +368,14 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
-                  color: customer != null ? AppColors.textPrimary : AppColors.textSecondary,
+                  color: customer != null ? null : AppColors.textSecondary,
                 ),
               ),
             ),
             const SizedBox(height: 10),
             _FlatRow(
               icon: Icons.bookmark_rounded,
-              iconColor: AppColors.secondary,
+              iconColor: AppColors.themedSecondary(context),
               child: TextField(
                 controller: _poController,
                 style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
@@ -390,7 +391,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             // Items
             _FlatRow(
               icon: Icons.add_circle_rounded,
-              iconColor: AppColors.primary,
+              iconColor: AppColors.themedPrimary(context),
               onTap: _addItem,
               trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
               child: const Text('Add Item', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w700, fontSize: 14)),
@@ -415,14 +416,14 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             // Adjustments
             _FlatRow(
               icon: Icons.percent_rounded,
-              iconColor: AppColors.secondary,
+              iconColor: AppColors.themedSecondary(context),
               onTap: () => _editAmount(title: 'Discount', value: _discount, onSaved: (v) => setState(() => _discount = v)),
               child: _AmountRowContent(label: 'Discount', value: _discount),
             ),
             const SizedBox(height: 10),
             _FlatRow(
               icon: Icons.receipt_long_rounded,
-              iconColor: AppColors.primary,
+              iconColor: AppColors.themedPrimary(context),
               onTap: () => _editAmount(title: 'Tax', value: _tax, onSaved: (v) => setState(() => _tax = v)),
               child: _AmountRowContent(label: 'Tax', value: _tax),
             ),
@@ -436,7 +437,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             const SizedBox(height: 10),
             _FlatRow(
               icon: Icons.summarize_rounded,
-              iconColor: AppColors.primary,
+              iconColor: AppColors.themedPrimary(context),
               child: _AmountRowContent(label: 'Total', value: _total, bold: true),
             ),
             const SizedBox(height: 10),
@@ -452,7 +453,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             // Attachment
             _FlatRow(
               icon: Icons.image_rounded,
-              iconColor: AppColors.secondary,
+              iconColor: AppColors.themedSecondary(context),
               onTap: _pickAttachment,
               trailing: _attachmentBytes == null
                   ? const Icon(Icons.add_circle_outline_rounded, color: AppColors.textSecondary)
@@ -472,7 +473,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             // Payment instruction
             _FlatRow(
               icon: Icons.menu_book_rounded,
-              iconColor: AppColors.primary,
+              iconColor: AppColors.themedPrimary(context),
               onTap: _pickPaymentMethod,
               trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
               child: Column(
@@ -489,7 +490,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             // Signature
             _FlatRow(
               icon: Icons.draw_rounded,
-              iconColor: AppColors.primary,
+              iconColor: AppColors.themedPrimary(context),
               onTap: _openSignatureSheet,
               trailing: _signatureBytes != null
                   ? Image.memory(_signatureBytes!, height: 32, width: 60, fit: BoxFit.contain)
@@ -539,7 +540,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
                   decoration: BoxDecoration(
                     color: _markAsPaid ? AppColors.success : Colors.transparent,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: _markAsPaid ? AppColors.success : AppColors.primary, width: 1.4),
+                    border: Border.all(color: _markAsPaid ? AppColors.success : AppColors.themedPrimary(context), width: 1.4),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -551,7 +552,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
                       Text(
                         _markAsPaid ? 'Marked as Paid' : 'Mark Paid',
                         style: TextStyle(
-                          color: _markAsPaid ? Colors.white : AppColors.primary,
+                          color: _markAsPaid ? Colors.white : AppColors.themedPrimary(context),
                           fontWeight: FontWeight.w800,
                           fontSize: 14,
                         ),
@@ -659,7 +660,7 @@ class _AmountRowContent extends StatelessWidget {
           style: TextStyle(
             fontWeight: bold ? FontWeight.w800 : FontWeight.w700,
             fontSize: bold ? 15 : 14,
-            color: bold ? AppColors.primary : AppColors.textSecondary,
+            color: bold ? AppColors.themedPrimary(context) : AppColors.textSecondary,
           ),
         ),
       ],
@@ -687,7 +688,7 @@ class _PaymentMethodChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : AppColors.textPrimary,
+            color: selected ? Colors.white : null,
             fontWeight: FontWeight.w700,
             fontSize: 13,
           ),
@@ -876,31 +877,34 @@ class _CustomerPickerSheet extends StatelessWidget {
           child: SingleChildScrollView(
             child: Column(
               children: customers
-                  .map((c) => PressableScale(
-                        scaleDown: 0.99,
-                        onTap: () => Navigator.pop(context, c.id),
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: c.id == selectedId ? AppColors.primary.withOpacity(0.08) : Colors.transparent,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 18,
-                                backgroundColor: AppColors.primary.withOpacity(0.12),
-                                child: Text(c.name.isNotEmpty ? c.name[0].toUpperCase() : '?',
-                                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800)),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(child: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700))),
-                              if (c.id == selectedId) const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
-                            ],
-                          ),
+                  .map((c) {
+                    final accent = AppColors.themedPrimary(context);
+                    return PressableScale(
+                      scaleDown: 0.99,
+                      onTap: () => Navigator.pop(context, c.id),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: c.id == selectedId ? accent.withOpacity(0.08) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                      ))
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundColor: accent.withOpacity(0.14),
+                              child: Text(c.name.isNotEmpty ? c.name[0].toUpperCase() : '?',
+                                  style: TextStyle(color: accent, fontWeight: FontWeight.w800)),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(child: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700))),
+                            if (c.id == selectedId) Icon(Icons.check_circle_rounded, color: accent, size: 20),
+                          ],
+                        ),
+                      ),
+                    );
+                  })
                   .toList(),
             ),
           ),

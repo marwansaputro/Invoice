@@ -69,7 +69,7 @@ class InvoiceDetailScreen extends ConsumerWidget {
                       Text('Issued ${_fmt(invoice.invoiceDate)}',
                           style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
                       const SizedBox(height: 14),
-                      MoneyText(value: invoice.total, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 26, color: AppColors.primary)),
+                      MoneyText(value: invoice.total, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 26, color: AppColors.themedPrimary(context))),
                     ],
                   ),
                 ),

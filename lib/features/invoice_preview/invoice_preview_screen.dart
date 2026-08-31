@@ -326,11 +326,11 @@ class _PreparingPdfDialogState extends State<_PreparingPdfDialog>
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.themedPrimary(context).withOpacity(0.14),
                     borderRadius: BorderRadius.circular(16)),
                 alignment: Alignment.center,
-                child: const Icon(Icons.description_rounded,
-                    color: AppColors.primary, size: 28),
+                child: Icon(Icons.description_rounded,
+                    color: AppColors.themedPrimary(context), size: 28),
               ),
             ),
             const SizedBox(height: 18),
@@ -429,7 +429,7 @@ class _ShareSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final options = [
       ('WhatsApp', Icons.chat_rounded, AppColors.success),
-      ('Email', Icons.email_rounded, AppColors.primary),
+      ('Email', Icons.email_rounded, AppColors.themedPrimary(context)),
       ('Telegram', Icons.send_rounded, const Color(0xFF29A9EA)),
       ('Other Apps', Icons.more_horiz_rounded, AppColors.textSecondary),
     ];
@@ -477,7 +477,7 @@ class _ShareSheet extends StatelessWidget {
         const SizedBox(height: 10),
         ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.link_rounded, color: AppColors.primary),
+          leading: Icon(Icons.link_rounded, color: AppColors.themedPrimary(context)),
           title: const Text('Copy Invoice Link',
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
           onTap: () {
@@ -487,7 +487,7 @@ class _ShareSheet extends StatelessWidget {
         ),
         ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.tag_rounded, color: AppColors.primary),
+          leading: Icon(Icons.tag_rounded, color: AppColors.themedPrimary(context)),
           title: const Text('Copy Invoice Number',
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
           onTap: () {
