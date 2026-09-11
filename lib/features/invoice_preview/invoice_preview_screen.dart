@@ -123,14 +123,16 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen>
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text('Preview', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+        title: const Text('Preview',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
             icon: _generatingPdf
                 ? const SizedBox(
                     height: 18,
                     width: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
                 : const Icon(Icons.picture_as_pdf_rounded, color: Colors.white),
             onPressed: _generatingPdf ? null : _generateAndOpenPdf,
           ),
@@ -477,7 +479,8 @@ class _ShareSheet extends StatelessWidget {
         const SizedBox(height: 10),
         ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: Icon(Icons.link_rounded, color: AppColors.themedPrimary(context)),
+          leading:
+              Icon(Icons.link_rounded, color: AppColors.themedPrimary(context)),
           title: const Text('Copy Invoice Link',
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
           onTap: () {
@@ -487,7 +490,8 @@ class _ShareSheet extends StatelessWidget {
         ),
         ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: Icon(Icons.tag_rounded, color: AppColors.themedPrimary(context)),
+          leading:
+              Icon(Icons.tag_rounded, color: AppColors.themedPrimary(context)),
           title: const Text('Copy Invoice Number',
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
           onTap: () {

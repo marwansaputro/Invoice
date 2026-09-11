@@ -1,5 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+
 import '../../core/animations/app_motion.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
@@ -17,25 +21,29 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _editBusinessProfile() async {
     final business = AppDatabase.business;
-    await showAppBottomSheet(context, child: BusinessProfileSheet(business: business));
+    await showAppBottomSheet(context,
+        child: BusinessProfileSheet(business: business));
     setState(() {});
   }
 
   Future<void> _editInvoiceSettings() async {
     final settings = AppDatabase.settings;
-    await showAppBottomSheet(context, child: _InvoiceSettingsSheet(settings: settings));
+    await showAppBottomSheet(context,
+        child: _InvoiceSettingsSheet(settings: settings));
     setState(() {});
   }
 
   Future<void> _editTaxSettings() async {
     final settings = AppDatabase.settings;
-    await showAppBottomSheet(context, child: _TaxSettingsSheet(settings: settings));
+    await showAppBottomSheet(context,
+        child: _TaxSettingsSheet(settings: settings));
     setState(() {});
   }
 
   Future<void> _pickCurrency() async {
     final settings = AppDatabase.settings;
-    final picked = await showAppBottomSheet<String>(context, child: _CurrencySheet(current: settings.currencySymbol));
+    final picked = await showAppBottomSheet<String>(context,
+        child: _CurrencySheet(current: settings.currencySymbol));
     if (picked != null) {
       settings.currencySymbol = picked;
       await settings.save();
@@ -58,10 +66,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         children: [
           AnimatedEntry(
             offsetY: 10,
-            child: const Text('Settings', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            child: const Text('Settings',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
           ),
           const SizedBox(height: 4),
-          const Text('Manage your business & app preferences', style: TextStyle(color: AppColors.textSecondary, fontSize: 13.5)),
+          const Text('Manage your business & app preferences',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13.5)),
           const SizedBox(height: 20),
           AnimatedEntry(
             delay: const Duration(milliseconds: 60),
@@ -69,25 +79,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onTap: _editBusinessProfile,
               child: Row(
                 children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(16)),
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 24),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: business.logoBytes != null
+                        ? Image.memory(
+                            Uint8List.fromList(business.logoBytes!),
+                            width: 52,
+                            height: 52,
+                            fit: BoxFit.cover,
+                          )
+                        : Container(
+                            width: 52,
+                            height: 52,
+                            color: AppColors.primary,
+                            alignment: Alignment.center,
+                            child: const Icon(Icons.storefront_rounded,
+                                color: Colors.white, size: 24),
+                          ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(business.businessName, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                        Text(business.businessName,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w800, fontSize: 15)),
                         const SizedBox(height: 2),
-                        const Text('Tap to edit business profile', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                        const Text('Tap to edit business profile',
+                            style: TextStyle(
+                                color: AppColors.textSecondary, fontSize: 12)),
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+                  const Icon(Icons.chevron_right_rounded,
+                      color: AppColors.textSecondary),
                 ],
               ),
             ),
@@ -98,8 +124,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: _GroupedSettingsCard(
               title: 'Business',
               items: [
-                _SettingsItem(icon: Icons.badge_rounded, label: 'Business Profile', onTap: _editBusinessProfile),
-                _SettingsItem(icon: Icons.receipt_long_rounded, label: 'Invoice Settings', onTap: _editInvoiceSettings),
+                _SettingsItem(
+                    icon: Icons.badge_rounded,
+                    label: 'Business Profile',
+                    onTap: _editBusinessProfile),
+                _SettingsItem(
+                    icon: Icons.receipt_long_rounded,
+                    label: 'Invoice Settings',
+                    onTap: _editInvoiceSettings),
                 _SettingsItem(
                   icon: Icons.account_balance_rounded,
                   label: 'Payment Methods',
@@ -125,11 +157,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: _GroupedSettingsCard(
               title: 'Preferences',
               items: [
-                _SettingsItem(icon: Icons.attach_money_rounded, label: 'Currency', trailing: settings.currencySymbol, onTap: _pickCurrency),
+                _SettingsItem(
+                    icon: Icons.attach_money_rounded,
+                    label: 'Currency',
+                    trailing: settings.currencySymbol,
+                    onTap: _pickCurrency),
                 _SettingsItem(
                   icon: Icons.description_rounded,
                   label: 'Invoice Template',
-                  onTap: () => AppSnackbar.show(context, message: 'Your invoices use the default professional template.'),
+                  onTap: () => AppSnackbar.show(context,
+                      message:
+                          'Your invoices use the default professional template.'),
                 ),
                 _SettingsItem(
                   icon: Icons.notifications_none_rounded,
@@ -158,18 +196,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     padding: EdgeInsets.only(top: 12, bottom: 4),
                     child: Row(
                       children: [
-                        Text('Appearance', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 0.4)),
+                        Text('Appearance',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textSecondary,
+                                letterSpacing: 0.4)),
                       ],
                     ),
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Expanded(child: _ThemeOption(label: 'Light', icon: Icons.light_mode_rounded, selected: themeMode == 1, onTap: () => ref.read(themeModeProvider.notifier).set(1))),
+                      Expanded(
+                          child: _ThemeOption(
+                              label: 'Light',
+                              icon: Icons.light_mode_rounded,
+                              selected: themeMode == 1,
+                              onTap: () =>
+                                  ref.read(themeModeProvider.notifier).set(1))),
                       const SizedBox(width: 8),
-                      Expanded(child: _ThemeOption(label: 'Dark', icon: Icons.dark_mode_rounded, selected: themeMode == 2, onTap: () => ref.read(themeModeProvider.notifier).set(2))),
+                      Expanded(
+                          child: _ThemeOption(
+                              label: 'Dark',
+                              icon: Icons.dark_mode_rounded,
+                              selected: themeMode == 2,
+                              onTap: () =>
+                                  ref.read(themeModeProvider.notifier).set(2))),
                       const SizedBox(width: 8),
-                      Expanded(child: _ThemeOption(label: 'System', icon: Icons.smartphone_rounded, selected: themeMode == 0, onTap: () => ref.read(themeModeProvider.notifier).set(0))),
+                      Expanded(
+                          child: _ThemeOption(
+                              label: 'System',
+                              icon: Icons.smartphone_rounded,
+                              selected: themeMode == 0,
+                              onTap: () =>
+                                  ref.read(themeModeProvider.notifier).set(0))),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -187,12 +248,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   icon: Icons.cloud_sync_rounded,
                   label: 'Backup & Restore',
                   onTap: () => AppSnackbar.show(context,
-                      message: 'All your data is already saved locally on this device.', icon: Icons.storage_rounded),
+                      message:
+                          'All your data is already saved locally on this device.',
+                      icon: Icons.storage_rounded),
                 ),
                 _SettingsItem(
                   icon: Icons.info_outline_rounded,
                   label: 'About',
-                  onTap: () => showScaleFadeDialog(context, child: const _AboutDialog()),
+                  onTap: () =>
+                      showScaleFadeDialog(context, child: const _AboutDialog()),
                 ),
               ],
             ),
@@ -201,14 +265,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Center(
             child: Column(
               children: [
-                Text('INVOICELY', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: AppColors.textSecondary.withOpacity(0.6), letterSpacing: 1.2)),
+                Text('INVOICE',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 13,
+                        color: AppColors.textSecondary.withOpacity(0.6),
+                        letterSpacing: 1.2)),
                 const SizedBox(height: 2),
-                Text('Create. Send. Get Paid.', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary.withOpacity(0.5))),
+                Text('Create. Marwan S',
+                    style: TextStyle(
+                        fontSize: 11.5,
+                        color: AppColors.textSecondary.withOpacity(0.5))),
                 const SizedBox(height: 4),
-                Text('Version 1.0.0', style: TextStyle(fontSize: 11, color: AppColors.textSecondary.withOpacity(0.4))),
+                Text('Version 1.0.0',
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSecondary.withOpacity(0.4))),
               ],
             ),
           ),
+          const SizedBox(height: 40),
         ],
       ),
     );
@@ -221,7 +297,12 @@ class _SettingsItem {
   final String? trailing;
   final Widget? trailingWidget;
   final VoidCallback? onTap;
-  _SettingsItem({required this.icon, required this.label, this.trailing, this.trailingWidget, this.onTap});
+  _SettingsItem(
+      {required this.icon,
+      required this.label,
+      this.trailing,
+      this.trailingWidget,
+      this.onTap});
 }
 
 class _GroupedSettingsCard extends StatelessWidget {
@@ -236,7 +317,12 @@ class _GroupedSettingsCard extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 0.4)),
+          child: Text(title,
+              style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.4)),
         ),
         AppCard(
           padding: const EdgeInsets.symmetric(vertical: 4),
@@ -244,7 +330,8 @@ class _GroupedSettingsCard extends StatelessWidget {
             children: [
               for (int i = 0; i < items.length; i++) ...[
                 _SettingsRow(item: items[i]),
-                if (i != items.length - 1) const Divider(height: 1, indent: 70, endIndent: 16),
+                if (i != items.length - 1)
+                  const Divider(height: 1, indent: 70, endIndent: 16),
               ],
             ],
           ),
@@ -268,14 +355,22 @@ class _SettingsRow extends StatelessWidget {
           children: [
             Icon(item.icon, size: 20, color: AppColors.themedPrimary(context)),
             const SizedBox(width: 16),
-            Expanded(child: Text(item.label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5))),
+            Expanded(
+                child: Text(item.label,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 13.5))),
             if (item.trailingWidget != null)
               item.trailingWidget!
             else ...[
               if (item.trailing != null)
-                Text(item.trailing!, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5, fontWeight: FontWeight.w600)),
+                Text(item.trailing!,
+                    style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600)),
               const SizedBox(width: 6),
-              const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textSecondary),
+              const Icon(Icons.chevron_right_rounded,
+                  size: 18, color: AppColors.textSecondary),
             ],
           ],
         ),
@@ -289,7 +384,11 @@ class _ThemeOption extends StatelessWidget {
   final IconData icon;
   final bool selected;
   final VoidCallback onTap;
-  const _ThemeOption({required this.label, required this.icon, required this.selected, required this.onTap});
+  const _ThemeOption(
+      {required this.label,
+      required this.icon,
+      required this.selected,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -303,13 +402,19 @@ class _ThemeOption extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? accent.withOpacity(0.10) : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: selected ? accent : Theme.of(context).dividerColor),
+          border: Border.all(
+              color: selected ? accent : Theme.of(context).dividerColor),
         ),
         child: Column(
           children: [
-            Icon(icon, size: 20, color: selected ? accent : AppColors.textSecondary),
+            Icon(icon,
+                size: 20, color: selected ? accent : AppColors.textSecondary),
             const SizedBox(height: 6),
-            Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: selected ? accent : AppColors.textSecondary)),
+            Text(label,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: selected ? accent : AppColors.textSecondary)),
           ],
         ),
       ),
@@ -335,9 +440,18 @@ class _BusinessProfileSheetState extends State<BusinessProfileSheet> {
   late final TextEditingController _bankName;
   late final TextEditingController _bankAccountName;
   late final TextEditingController _bankAccountNumber;
+  late final TextEditingController _qrisId;
+  late final TextEditingController _eWalletProvider;
+  late final TextEditingController _eWalletNumber;
   late final Set<String> _selectedMethods;
+  Uint8List? _logoBytes;
 
-  static const _availableMethods = ['Bank Transfer', 'Cash', 'QRIS', 'E-Wallet'];
+  static const _availableMethods = [
+    'Bank Transfer',
+    'Cash',
+    'QRIS',
+    'E-Wallet'
+  ];
 
   @override
   void initState() {
@@ -350,7 +464,11 @@ class _BusinessProfileSheetState extends State<BusinessProfileSheet> {
     _bankName = TextEditingController(text: b.bankName);
     _bankAccountName = TextEditingController(text: b.bankAccountName);
     _bankAccountNumber = TextEditingController(text: b.bankAccountNumber);
+    _qrisId = TextEditingController(text: b.qrisId);
+    _eWalletProvider = TextEditingController(text: b.eWalletProvider);
+    _eWalletNumber = TextEditingController(text: b.eWalletNumber);
     _selectedMethods = b.acceptedPaymentMethods.toSet();
+    _logoBytes = b.logoBytes != null ? Uint8List.fromList(b.logoBytes!) : null;
   }
 
   void _toggleMethod(String method) {
@@ -363,6 +481,15 @@ class _BusinessProfileSheetState extends State<BusinessProfileSheet> {
     });
   }
 
+  Future<void> _pickLogo() async {
+    final picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery, maxWidth: 800, imageQuality: 85);
+    if (picked == null) return;
+    final bytes = await picked.readAsBytes();
+    if (!mounted) return;
+    setState(() => _logoBytes = bytes);
+  }
+
   @override
   void dispose() {
     _name.dispose();
@@ -372,6 +499,9 @@ class _BusinessProfileSheetState extends State<BusinessProfileSheet> {
     _bankName.dispose();
     _bankAccountName.dispose();
     _bankAccountNumber.dispose();
+    _qrisId.dispose();
+    _eWalletProvider.dispose();
+    _eWalletNumber.dispose();
     super.dispose();
   }
 
@@ -384,7 +514,11 @@ class _BusinessProfileSheetState extends State<BusinessProfileSheet> {
       ..bankName = _bankName.text.trim()
       ..bankAccountName = _bankAccountName.text.trim()
       ..bankAccountNumber = _bankAccountNumber.text.trim()
-      ..acceptedPaymentMethods = _selectedMethods.toList();
+      ..acceptedPaymentMethods = _selectedMethods.toList()
+      ..logoBytes = _logoBytes
+      ..qrisId = _qrisId.text.trim()
+      ..eWalletProvider = _eWalletProvider.text.trim()
+      ..eWalletNumber = _eWalletNumber.text.trim();
     await widget.business.save();
     if (mounted) {
       Navigator.pop(context);
@@ -399,17 +533,101 @@ class _BusinessProfileSheetState extends State<BusinessProfileSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Business Profile', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          const Text('Business Profile',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 18),
+          Center(
+            child: PressableScale(
+              onTap: _pickLogo,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: _logoBytes != null
+                        ? Image.memory(_logoBytes!,
+                            width: 84, height: 84, fit: BoxFit.cover)
+                        : Container(
+                            width: 84,
+                            height: 84,
+                            color: AppColors.themedPrimary(context),
+                            alignment: Alignment.center,
+                            child: const Icon(Icons.storefront_rounded,
+                                color: Colors.white, size: 32),
+                          ),
+                  ),
+                  Positioned(
+                    right: -4,
+                    bottom: -4,
+                    child: Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: AppColors.themedPrimary(context),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: Theme.of(context).cardTheme.color ??
+                                Colors.white,
+                            width: 2),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.photo_camera_rounded,
+                          color: Colors.white, size: 15),
+                    ),
+                  ),
+                  if (_logoBytes != null)
+                    Positioned(
+                      left: -4,
+                      bottom: -4,
+                      child: PressableScale(
+                        onTap: () => setState(() => _logoBytes = null),
+                        child: Container(
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(
+                            color: AppColors.danger,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                                color: Theme.of(context).cardTheme.color ??
+                                    Colors.white,
+                                width: 2),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.close_rounded,
+                              color: Colors.white, size: 13),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: Text('Tap to change photo',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+          ),
           const SizedBox(height: 18),
           AppTextField(label: 'Business Name', controller: _name),
           const SizedBox(height: 14),
           AppTextField(label: 'Address', controller: _address, maxLines: 2),
           const SizedBox(height: 14),
-          AppTextField(label: 'Phone', controller: _phone, keyboardType: TextInputType.phone),
+          AppTextField(
+              label: 'Phone',
+              controller: _phone,
+              keyboardType: TextInputType.phone),
           const SizedBox(height: 14),
-          AppTextField(label: 'Email', controller: _email, keyboardType: TextInputType.emailAddress),
+          AppTextField(
+              label: 'Email',
+              controller: _email,
+              keyboardType: TextInputType.emailAddress),
           const SizedBox(height: 18),
-          const Text('PAYMENT METHOD', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 0.6)),
+          const Text('PAYMENT METHOD',
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.6)),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -422,14 +640,42 @@ class _BusinessProfileSheetState extends State<BusinessProfileSheet> {
                     ))
                 .toList(),
           ),
-          const SizedBox(height: 16),
-          AppTextField(label: 'Bank Name', controller: _bankName),
-          const SizedBox(height: 14),
-          AppTextField(label: 'Account Name', controller: _bankAccountName),
-          const SizedBox(height: 14),
-          AppTextField(label: 'Account Number', controller: _bankAccountNumber, keyboardType: TextInputType.number),
+          if (_selectedMethods.contains('Bank Transfer')) ...[
+            const SizedBox(height: 16),
+            AppTextField(label: 'Bank Name', controller: _bankName),
+            const SizedBox(height: 14),
+            AppTextField(label: 'Account Name', controller: _bankAccountName),
+            const SizedBox(height: 14),
+            AppTextField(
+                label: 'Account Number',
+                controller: _bankAccountNumber,
+                keyboardType: TextInputType.number),
+          ],
+          if (_selectedMethods.contains('QRIS')) ...[
+            const SizedBox(height: 16),
+            AppTextField(
+                label: 'QRIS Merchant ID',
+                controller: _qrisId,
+                hint: 'e.g. ID10200123456789'),
+          ],
+          if (_selectedMethods.contains('E-Wallet')) ...[
+            const SizedBox(height: 16),
+            AppTextField(
+                label: 'E-Wallet Provider',
+                controller: _eWalletProvider,
+                hint: 'e.g. OVO, GoPay, Dana'),
+            const SizedBox(height: 14),
+            AppTextField(
+                label: 'E-Wallet Number',
+                controller: _eWalletNumber,
+                keyboardType: TextInputType.phone),
+          ],
           const SizedBox(height: 22),
-          AppButton(label: 'Save Changes', icon: Icons.check_rounded, expand: true, onPressed: _save),
+          AppButton(
+              label: 'Save Changes',
+              icon: Icons.check_rounded,
+              expand: true,
+              onPressed: _save),
         ],
       ),
     );
@@ -440,7 +686,8 @@ class _MethodChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  const _MethodChip({required this.label, required this.selected, required this.onTap});
+  const _MethodChip(
+      {required this.label, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -451,7 +698,10 @@ class _MethodChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? AppColors.primary : Theme.of(context).dividerColor),
+          border: Border.all(
+              color: selected
+                  ? AppColors.primary
+                  : Theme.of(context).dividerColor),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -507,8 +757,11 @@ class _InvoiceSettingsSheetState extends State<_InvoiceSettingsSheet> {
 
   Future<void> _save() async {
     widget.settings
-      ..invoiceNumberPrefix = _prefix.text.trim().isEmpty ? 'INV' : _prefix.text.trim().toUpperCase()
-      ..nextInvoiceSequence = int.tryParse(_nextNumber.text) ?? widget.settings.nextInvoiceSequence
+      ..invoiceNumberPrefix = _prefix.text.trim().isEmpty
+          ? 'INV'
+          : _prefix.text.trim().toUpperCase()
+      ..nextInvoiceSequence =
+          int.tryParse(_nextNumber.text) ?? widget.settings.nextInvoiceSequence
       ..defaultDueDays = int.tryParse(_dueDays.text) ?? 0;
     await widget.settings.save();
     if (mounted) {
@@ -523,15 +776,28 @@ class _InvoiceSettingsSheetState extends State<_InvoiceSettingsSheet> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Invoice Settings', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        const Text('Invoice Settings',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         const SizedBox(height: 18),
-        AppTextField(label: 'Invoice Number Prefix', controller: _prefix, hint: 'INV'),
+        AppTextField(
+            label: 'Invoice Number Prefix', controller: _prefix, hint: 'INV'),
         const SizedBox(height: 14),
-        AppTextField(label: 'Next Invoice Number', controller: _nextNumber, keyboardType: TextInputType.number),
+        AppTextField(
+            label: 'Next Invoice Number',
+            controller: _nextNumber,
+            keyboardType: TextInputType.number),
         const SizedBox(height: 14),
-        AppTextField(label: 'Default Due Days', controller: _dueDays, hint: '0 = Due on receipt', keyboardType: TextInputType.number),
+        AppTextField(
+            label: 'Default Due Days',
+            controller: _dueDays,
+            hint: '0 = Due on receipt',
+            keyboardType: TextInputType.number),
         const SizedBox(height: 22),
-        AppButton(label: 'Save Changes', icon: Icons.check_rounded, expand: true, onPressed: _save),
+        AppButton(
+            label: 'Save Changes',
+            icon: Icons.check_rounded,
+            expand: true,
+            onPressed: _save),
       ],
     );
   }
@@ -551,7 +817,8 @@ class _TaxSettingsSheetState extends State<_TaxSettingsSheet> {
   @override
   void initState() {
     super.initState();
-    _percent = TextEditingController(text: widget.settings.defaultTaxPercent.toStringAsFixed(0));
+    _percent = TextEditingController(
+        text: widget.settings.defaultTaxPercent.toStringAsFixed(0));
   }
 
   @override
@@ -575,14 +842,22 @@ class _TaxSettingsSheetState extends State<_TaxSettingsSheet> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Tax Settings', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        const Text('Tax Settings',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         const SizedBox(height: 6),
         const Text('Used as a default suggestion when adding new items.',
             style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
         const SizedBox(height: 18),
-        AppTextField(label: 'Default Tax (%)', controller: _percent, keyboardType: const TextInputType.numberWithOptions(decimal: true)),
+        AppTextField(
+            label: 'Default Tax (%)',
+            controller: _percent,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true)),
         const SizedBox(height: 22),
-        AppButton(label: 'Save Changes', icon: Icons.check_rounded, expand: true, onPressed: _save),
+        AppButton(
+            label: 'Save Changes',
+            icon: Icons.check_rounded,
+            expand: true,
+            onPressed: _save),
       ],
     );
   }
@@ -599,7 +874,8 @@ class _CurrencySheet extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Select Currency', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        const Text('Select Currency',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         const SizedBox(height: 14),
         ...currencies.map((c) {
           final accent = AppColors.themedPrimary(context);
@@ -610,15 +886,22 @@ class _CurrencySheet extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
               decoration: BoxDecoration(
-                color: c == current ? accent.withOpacity(0.08) : Colors.transparent,
+                color: c == current
+                    ? accent.withOpacity(0.08)
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: c == current ? accent : Theme.of(context).dividerColor),
+                border: Border.all(
+                    color:
+                        c == current ? accent : Theme.of(context).dividerColor),
               ),
               child: Row(
                 children: [
-                  Text(c, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                  Text(c,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w800, fontSize: 15)),
                   const SizedBox(width: 12),
-                  if (c == current) Icon(Icons.check_circle_rounded, color: accent, size: 18),
+                  if (c == current)
+                    Icon(Icons.check_circle_rounded, color: accent, size: 18),
                 ],
               ),
             ),
@@ -640,27 +923,42 @@ class _AboutDialog extends StatelessWidget {
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 32),
           padding: const EdgeInsets.all(26),
-          decoration: BoxDecoration(color: Theme.of(context).cardTheme.color, borderRadius: BorderRadius.circular(24)),
+          decoration: BoxDecoration(
+              color: Theme.of(context).cardTheme.color,
+              borderRadius: BorderRadius.circular(24)),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 width: 56,
                 height: 56,
-                decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(16)),
                 alignment: Alignment.center,
-                child: const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 26),
+                child: const Icon(Icons.receipt_long_rounded,
+                    color: Colors.white, size: 26),
               ),
               const SizedBox(height: 14),
-              const Text('Invoicely', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17)),
+              const Text('Invoice',
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17)),
               const SizedBox(height: 4),
-              const Text('Create. Send. Get Paid.', style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
+              const Text('Create. Marwan S',
+                  style: TextStyle(
+                      color: AppColors.textSecondary, fontSize: 12.5)),
               const SizedBox(height: 14),
-              const Text('Version 1.0.0', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+              const Text('Version 1.0.0',
+                  style:
+                      TextStyle(color: AppColors.textSecondary, fontSize: 12)),
               const SizedBox(height: 4),
-              const Text('All data is stored locally on this device.', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+              const Text('All data is stored locally on this device.',
+                  style:
+                      TextStyle(color: AppColors.textSecondary, fontSize: 12)),
               const SizedBox(height: 18),
-              AppButton(label: 'Close', expand: true, onPressed: () => Navigator.pop(context)),
+              AppButton(
+                  label: 'Close',
+                  expand: true,
+                  onPressed: () => Navigator.pop(context)),
             ],
           ),
         ),

@@ -526,6 +526,7 @@ class AppTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final int maxLines;
   final Widget? prefix;
+  final Widget? suffix;
   final ValueChanged<String>? onChanged;
 
   const AppTextField({
@@ -536,6 +537,7 @@ class AppTextField extends StatelessWidget {
     this.keyboardType,
     this.maxLines = 1,
     this.prefix,
+    this.suffix,
     this.onChanged,
   });
 
@@ -551,7 +553,7 @@ class AppTextField extends StatelessWidget {
           keyboardType: keyboardType,
           maxLines: maxLines,
           onChanged: onChanged,
-          decoration: InputDecoration(hintText: hint, prefixIcon: prefix),
+          decoration: InputDecoration(hintText: hint, prefixIcon: prefix, suffixIcon: suffix),
         ),
       ],
     );

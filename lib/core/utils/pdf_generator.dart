@@ -27,6 +27,35 @@ class PdfGenerator {
     final danger = PdfColor.fromInt(0xFFE95B5B);
     final borderGrey = PdfColors.grey300;
 
+    final paymentMethodLabel =
+        invoice.paymentMethod.isNotEmpty ? invoice.paymentMethod : 'Bank Transfer';
+    List<pw.InlineSpan> paymentDetailSpans(PdfColor emphasisColor) {
+      final emphasized = pw.TextStyle(fontWeight: pw.FontWeight.bold, color: emphasisColor);
+      switch (paymentMethodLabel) {
+        case 'QRIS':
+          return [
+            pw.TextSpan(
+                text: business.qrisId.isNotEmpty
+                    ? business.qrisId
+                    : 'Scan the QRIS code to pay.'),
+          ];
+        case 'E-Wallet':
+          return [
+            pw.TextSpan(
+                text: '${business.eWalletProvider.isNotEmpty ? business.eWalletProvider : 'E-Wallet'}: '),
+            pw.TextSpan(text: business.eWalletNumber, style: emphasized),
+          ];
+        case 'Cash':
+          return const [pw.TextSpan(text: 'Payment due in cash upon receipt.')];
+        default:
+          return [
+            pw.TextSpan(text: '${business.bankName} : ${business.bankAccountName}'),
+            if (business.bankAccountNumber.isNotEmpty)
+              pw.TextSpan(text: '\n${business.bankAccountNumber}', style: emphasized),
+          ];
+      }
+    }
+
     doc.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
@@ -43,15 +72,26 @@ class PdfGenerator {
               pw.Row(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Container(
-                    width: 42,
-                    height: 42,
-                    decoration: pw.BoxDecoration(color: primary, shape: pw.BoxShape.circle),
-                    alignment: pw.Alignment.center,
-                    child: pw.Text(
-                      business.businessName.isNotEmpty ? business.businessName[0].toUpperCase() : '?',
-                      style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 18),
-                    ),
+                  pw.ClipRRect(
+                    horizontalRadius: 11,
+                    verticalRadius: 11,
+                    child: business.logoBytes != null
+                        ? pw.Image(
+                            pw.MemoryImage(Uint8List.fromList(business.logoBytes!)),
+                            width: 42,
+                            height: 42,
+                            fit: pw.BoxFit.contain,
+                          )
+                        : pw.Container(
+                            width: 42,
+                            height: 42,
+                            color: primary,
+                            alignment: pw.Alignment.center,
+                            child: pw.Text(
+                              business.businessName.isNotEmpty ? business.businessName[0].toUpperCase() : '?',
+                              style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 18),
+                            ),
+                          ),
                   ),
                   pw.SizedBox(width: 12),
                   pw.Expanded(
@@ -202,11 +242,10 @@ class PdfGenerator {
                               style: pw.TextStyle(fontSize: 9.5, color: secondaryGrey),
                               children: [
                                 pw.TextSpan(
-                                  text: '${invoice.paymentMethod.isNotEmpty ? invoice.paymentMethod : 'Bank Transfer'}: ',
+                                  text: '$paymentMethodLabel: ',
                                   style: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: dark),
                                 ),
-                                pw.TextSpan(text: '${business.bankName} : ${business.bankAccountName}'),
-                                if (business.bankAccountNumber.isNotEmpty) pw.TextSpan(text: '\n${business.bankAccountNumber}'),
+                                ...paymentDetailSpans(dark),
                               ],
                             ),
                           ),
