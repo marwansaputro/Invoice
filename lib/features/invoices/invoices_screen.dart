@@ -109,9 +109,10 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _SearchBar(
+              child: CollapsibleSearchBar(
                 controller: _searchController,
                 expanded: _searching,
+                hintText: 'Search invoice...',
                 onToggle: () {
                   setState(() {
                     _searching = !_searching;
@@ -236,81 +237,6 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Search bar that expands from a compact circular icon (48px) to a full
-/// width text field with an animated icon swap (spec section 9).
-class _SearchBar extends StatelessWidget {
-  final TextEditingController controller;
-  final bool expanded;
-  final VoidCallback onToggle;
-  final ValueChanged<String> onChanged;
-
-  const _SearchBar({
-    required this.controller,
-    required this.expanded,
-    required this.onToggle,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return AnimatedContainer(
-      duration: AppDurations.normal,
-      curve: AppCurves.smooth,
-      height: 48,
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.dividerColor),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: onToggle,
-            icon: AnimatedSwitcher(
-              duration: AppDurations.fast,
-              transitionBuilder: (child, anim) =>
-                  ScaleTransition(scale: anim, child: child),
-              child: Icon(
-                expanded ? Icons.arrow_back_rounded : Icons.search_rounded,
-                key: ValueKey(expanded),
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ),
-          Expanded(
-            child: AnimatedOpacity(
-              duration: AppDurations.normal,
-              opacity: expanded ? 1 : 0,
-              child: expanded
-                  ? TextField(
-                      controller: controller,
-                      autofocus: true,
-                      onChanged: onChanged,
-                      decoration: const InputDecoration(
-                        hintText: 'Search invoice...',
-                        border: InputBorder.none,
-                        isDense: true,
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ),
-          if (!expanded)
-            const Padding(
-              padding: EdgeInsets.only(right: 16),
-              child: Text('Search invoice...',
-                  style: TextStyle(
-                      color: AppColors.textSecondary, fontSize: 13.5)),
-            ),
-        ],
       ),
     );
   }

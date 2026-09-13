@@ -1,7 +1,11 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
@@ -29,6 +33,7 @@ class InvoicePreviewScreen extends ConsumerStatefulWidget {
 class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _entrance;
+  final GlobalKey _previewKey = GlobalKey();
   _SendState _sendState = _SendState.idle;
   bool _generatingPdf = false;
 
@@ -64,10 +69,43 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen>
     setState(() => _sendState = _SendState.idle);
   }
 
+  /// Renders the on-screen invoice card (exactly as shown in the preview)
+  /// to a .jpg file, so it can be shared as an image to WhatsApp and
+  /// other apps instead of a bare text message.
+  Future<File?> _captureInvoiceJpg() async {
+    try {
+      final boundary = _previewKey.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
+      if (boundary == null) return null;
+      final uiImage = await boundary.toImage(pixelRatio: 2.5);
+      final byteData =
+          await uiImage.toByteData(format: ui.ImageByteFormat.rawRgba);
+      if (byteData == null) return null;
+      final image = img.Image.fromBytes(
+        width: uiImage.width,
+        height: uiImage.height,
+        bytes: byteData.buffer,
+        numChannels: 4,
+      );
+      final jpgBytes = img.encodeJpg(image, quality: 92);
+      final dir = await getTemporaryDirectory();
+      final invoice = _invoice;
+      final file =
+          File('${dir.path}/${invoice?.invoiceNumber ?? 'invoice'}.jpg');
+      await file.writeAsBytes(jpgBytes);
+      return file;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _openShareSheet() async {
     final invoice = _invoice;
     if (invoice == null) return;
-    await showAppBottomSheet(context, child: _ShareSheet(invoice: invoice));
+    final imageFile = await _captureInvoiceJpg();
+    if (!mounted) return;
+    await showAppBottomSheet(context,
+        child: _ShareSheet(invoice: invoice, imageFile: imageFile));
   }
 
   Future<void> _generateAndOpenPdf() async {
@@ -85,7 +123,10 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen>
     ));
 
     final bytes = await PdfGenerator.generateInvoicePdf(
-        invoice: invoice, customer: customer, business: business);
+        invoice: invoice,
+        customer: customer,
+        business: business,
+        template: AppDatabase.settings.invoiceTemplate);
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/${invoice.invoiceNumber}.pdf');
     await file.writeAsBytes(bytes);
@@ -179,8 +220,18 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen>
                 },
                 child: ScaleTransition(
                   scale: logoAnim.drive(Tween(begin: 0.98, end: 1)),
-                  child: InvoicePaper(
-                      invoice: invoice, customer: customer, business: business),
+                  child: RepaintBoundary(
+                    key: _previewKey,
+                    child: Container(
+                      color: const Color(0xFFF1F3F6),
+                      padding: const EdgeInsets.all(16),
+                      child: InvoicePaper(
+                          invoice: invoice,
+                          customer: customer,
+                          business: business,
+                          template: AppDatabase.settings.invoiceTemplate),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -425,7 +476,8 @@ class _PdfReadyDialog extends StatelessWidget {
 
 class _ShareSheet extends StatelessWidget {
   final Invoice invoice;
-  const _ShareSheet({required this.invoice});
+  final File? imageFile;
+  const _ShareSheet({required this.invoice, this.imageFile});
 
   @override
   Widget build(BuildContext context) {
@@ -451,8 +503,14 @@ class _ShareSheet extends StatelessWidget {
               .map((o) => PressableScale(
                     onTap: () async {
                       Navigator.pop(context);
-                      await Share.share(
-                          'Here is your invoice ${invoice.invoiceNumber}, total ${invoice.total.toStringAsFixed(0)}.');
+                      final text =
+                          'Here is your invoice ${invoice.invoiceNumber}, total ${invoice.total.toStringAsFixed(0)}.';
+                      if (imageFile != null) {
+                        await Share.shareXFiles([XFile(imageFile!.path)],
+                            text: text);
+                      } else {
+                        await Share.share(text);
+                      }
                     },
                     child: Column(
                       children: [

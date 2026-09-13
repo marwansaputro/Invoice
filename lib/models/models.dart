@@ -389,6 +389,7 @@ class InvoiceSettingsModel extends HiveObject {
   double defaultTaxPercent;
   int themeMode; // 0 = system, 1 = light, 2 = dark
   bool notificationsEnabled;
+  int invoiceTemplate; // 0 = Classic, 1 = Modern, 2 = Minimal
 
   InvoiceSettingsModel({
     this.currencySymbol = 'Rp',
@@ -398,6 +399,7 @@ class InvoiceSettingsModel extends HiveObject {
     this.defaultTaxPercent = 0,
     this.themeMode = 0,
     this.notificationsEnabled = true,
+    this.invoiceTemplate = 0,
   });
 }
 
@@ -419,13 +421,14 @@ class InvoiceSettingsAdapter extends TypeAdapter<InvoiceSettingsModel> {
       defaultTaxPercent: (fields[4] as num?)?.toDouble() ?? 0,
       themeMode: fields[5] as int? ?? 0,
       notificationsEnabled: fields[6] as bool? ?? true,
+      invoiceTemplate: fields[7] as int? ?? 0,
     );
   }
 
   @override
   void write(BinaryWriter writer, InvoiceSettingsModel obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.currencySymbol)
       ..writeByte(1)
@@ -439,6 +442,8 @@ class InvoiceSettingsAdapter extends TypeAdapter<InvoiceSettingsModel> {
       ..writeByte(5)
       ..write(obj.themeMode)
       ..writeByte(6)
-      ..write(obj.notificationsEnabled);
+      ..write(obj.notificationsEnabled)
+      ..writeByte(7)
+      ..write(obj.invoiceTemplate);
   }
 }

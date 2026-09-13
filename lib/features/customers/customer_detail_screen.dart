@@ -39,7 +39,21 @@ class CustomerDetailScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.edit_rounded),
             onPressed: () async {
-              final result = await showAppBottomSheet<Map<String, String>>(context, child: AddCustomerSheet(existing: customer));
+              bool deleted = false;
+              final result = await showAppBottomSheet<Map<String, String>>(
+                context,
+                child: AddCustomerSheet(
+                  existing: customer,
+                  onDelete: () {
+                    ref.read(customerRepositoryProvider.notifier).delete(customer!.id);
+                    deleted = true;
+                  },
+                ),
+              );
+              if (deleted) {
+                if (context.mounted) Navigator.of(context).pop();
+                return;
+              }
               if (result != null) {
                 customer!.name = result['name']!;
                 customer.phone = result['phone'] ?? '';

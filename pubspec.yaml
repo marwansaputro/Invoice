@@ -1,5 +1,5 @@
 name: invoicely
-description: "Invoicely — Create. Send. Get Paid. A modern invoice management & generator app."
+description: "Invoice-pip — Create. Send. Get Paid. A modern invoice management & generator app."
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -22,11 +22,29 @@ dependencies:
   uuid: ^4.4.2
   google_fonts: ^6.2.1
   image_picker: ^1.1.2
+  image: ^4.3.0
+  signature: ^5.5.0
+  qr_flutter: ^4.1.0
+  barcode: ^2.2.9
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.3
 
 flutter:
   uses-material-design: true
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/icon.png"
+  min_sdk_android: 21
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    background_color: "#FFFFFF"
+    theme_color: "#150E45"

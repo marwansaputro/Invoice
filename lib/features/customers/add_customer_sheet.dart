@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/animations/app_motion.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
 import '../../models/models.dart';
 
@@ -6,7 +8,8 @@ import '../../models/models.dart';
 /// field values via Navigator.pop for the caller to persist.
 class AddCustomerSheet extends StatefulWidget {
   final Customer? existing;
-  const AddCustomerSheet({super.key, this.existing});
+  final VoidCallback? onDelete;
+  const AddCustomerSheet({super.key, this.existing, this.onDelete});
 
   @override
   State<AddCustomerSheet> createState() => _AddCustomerSheetState();
@@ -47,6 +50,17 @@ class _AddCustomerSheetState extends State<AddCustomerSheet> {
     });
   }
 
+  Future<void> _delete() async {
+    final confirm = await showScaleFadeDialog<bool>(
+      context,
+      child: _ConfirmDeleteCustomerDialog(customerName: widget.existing!.name),
+    );
+    if (confirm == true && mounted) {
+      widget.onDelete?.call();
+      Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -71,7 +85,70 @@ class _AddCustomerSheetState extends State<AddCustomerSheet> {
             expand: true,
             onPressed: _submit,
           ),
+          if (widget.existing != null) ...[
+            const SizedBox(height: 10),
+            AppButton(
+              label: 'Delete Customer',
+              type: AppButtonStyleType.danger,
+              icon: Icons.delete_outline_rounded,
+              expand: true,
+              onPressed: _delete,
+            ),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+class _ConfirmDeleteCustomerDialog extends StatelessWidget {
+  final String customerName;
+  const _ConfirmDeleteCustomerDialog({required this.customerName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 32),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardTheme.color,
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.delete_outline_rounded, color: AppColors.danger, size: 36),
+              const SizedBox(height: 14),
+              Text('Delete $customerName?', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              const SizedBox(height: 8),
+              const Text('Their invoices will be kept, but no longer linked to a customer. This action cannot be undone.',
+                  textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppButton(
+                      label: 'Cancel',
+                      type: AppButtonStyleType.outline,
+                      onPressed: () => Navigator.pop(context, false),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: AppButton(
+                      label: 'Delete',
+                      type: AppButtonStyleType.danger,
+                      onPressed: () => Navigator.pop(context, true),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -18,6 +18,18 @@ class SettingsScreen extends ConsumerStatefulWidget {
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
+const kInvoiceTemplateNames = ['Classic', 'Modern', 'Minimal'];
+const kInvoiceTemplateDescriptions = [
+  'Clean white paper with a signature top accent stripe.',
+  'Bold colored header card for a contemporary look.',
+  'Monochrome, borderless, distraction-free layout.',
+];
+const kInvoiceTemplateIcons = [
+  Icons.receipt_long_rounded,
+  Icons.dashboard_customize_rounded,
+  Icons.crop_square_rounded,
+];
+
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _editBusinessProfile() async {
     final business = AppDatabase.business;
@@ -38,6 +50,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await showAppBottomSheet(context,
         child: _TaxSettingsSheet(settings: settings));
     setState(() {});
+  }
+
+  Future<void> _pickInvoiceTemplate() async {
+    final settings = AppDatabase.settings;
+    final picked = await showAppBottomSheet<int>(context,
+        child: _InvoiceTemplateSheet(current: settings.invoiceTemplate));
+    if (picked != null) {
+      settings.invoiceTemplate = picked;
+      await settings.save();
+      if (mounted) {
+        AppSnackbar.show(context,
+            message:
+                'Invoice template set to ${kInvoiceTemplateNames[picked]}');
+        setState(() {});
+      }
+    }
   }
 
   Future<void> _pickCurrency() async {
@@ -124,10 +152,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: _GroupedSettingsCard(
               title: 'Business',
               items: [
-                _SettingsItem(
-                    icon: Icons.badge_rounded,
-                    label: 'Business Profile',
-                    onTap: _editBusinessProfile),
+                // _SettingsItem(
+                //     icon: Icons.badge_rounded,
+                //     label: 'Business Profile',
+                //     onTap: _editBusinessProfile),
                 _SettingsItem(
                     icon: Icons.receipt_long_rounded,
                     label: 'Invoice Settings',
@@ -165,9 +193,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _SettingsItem(
                   icon: Icons.description_rounded,
                   label: 'Invoice Template',
-                  onTap: () => AppSnackbar.show(context,
-                      message:
-                          'Your invoices use the default professional template.'),
+                  trailing: kInvoiceTemplateNames[settings.invoiceTemplate],
+                  onTap: _pickInvoiceTemplate,
                 ),
                 _SettingsItem(
                   icon: Icons.notifications_none_rounded,
@@ -265,14 +292,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Center(
             child: Column(
               children: [
-                Text('INVOICE',
+                Text('INVOICE MANAGEMENT',
                     style: TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: 13,
                         color: AppColors.textSecondary.withOpacity(0.6),
                         letterSpacing: 1.2)),
                 const SizedBox(height: 2),
-                Text('Create. Marwan S',
+                Text('Created. Marwan S',
                     style: TextStyle(
                         fontSize: 11.5,
                         color: AppColors.textSecondary.withOpacity(0.5))),
@@ -912,6 +939,81 @@ class _CurrencySheet extends StatelessWidget {
   }
 }
 
+class _InvoiceTemplateSheet extends StatelessWidget {
+  final int current;
+  const _InvoiceTemplateSheet({required this.current});
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = AppColors.themedPrimary(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Invoice Template',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 4),
+        const Text('Choose how your invoices look when previewed or shared.',
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
+        const SizedBox(height: 16),
+        for (int i = 0; i < kInvoiceTemplateNames.length; i++) ...[
+          PressableScale(
+            scaleDown: 0.99,
+            onTap: () => Navigator.pop(context, i),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: i == current
+                    ? accent.withOpacity(0.08)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                    color:
+                        i == current ? accent : Theme.of(context).dividerColor),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: accent.withOpacity(0.10),
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                    alignment: Alignment.center,
+                    child:
+                        Icon(kInvoiceTemplateIcons[i], color: accent, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(kInvoiceTemplateNames[i],
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w800, fontSize: 14)),
+                        const SizedBox(height: 2),
+                        Text(kInvoiceTemplateDescriptions[i],
+                            style: const TextStyle(
+                                color: AppColors.textSecondary, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                  if (i == current) ...[
+                    const SizedBox(width: 8),
+                    Icon(Icons.check_circle_rounded, color: accent, size: 20),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          if (i != kInvoiceTemplateNames.length - 1) const SizedBox(height: 10),
+        ],
+      ],
+    );
+  }
+}
+
 class _AboutDialog extends StatelessWidget {
   const _AboutDialog();
 
@@ -940,10 +1042,10 @@ class _AboutDialog extends StatelessWidget {
                     color: Colors.white, size: 26),
               ),
               const SizedBox(height: 14),
-              const Text('Invoice',
+              const Text('Invoice Management',
                   style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17)),
               const SizedBox(height: 4),
-              const Text('Create. Marwan S',
+              const Text('Created. Marwan S',
                   style: TextStyle(
                       color: AppColors.textSecondary, fontSize: 12.5)),
               const SizedBox(height: 14),

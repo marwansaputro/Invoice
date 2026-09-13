@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:barcode/barcode.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -18,27 +19,28 @@ class PdfGenerator {
     required Invoice invoice,
     required Customer? customer,
     required BusinessProfile business,
+    int template = 0,
   }) async {
     final doc = pw.Document();
 
-    final primary = PdfColor.fromInt(0xFF150E45);
+    final isModern = template == 1;
+    final isMinimal = template == 2;
+    final primary = isMinimal
+        ? PdfColor.fromInt(0xFF3A3A3A)
+        : PdfColor.fromInt(0xFF150E45);
     final secondaryGrey = PdfColor.fromInt(0xFF6B7280);
     final dark = PdfColor.fromInt(0xFF202124);
     final danger = PdfColor.fromInt(0xFFE95B5B);
     final borderGrey = PdfColors.grey300;
+    final headerInk = isModern ? PdfColors.white : dark;
+    final headerMuted =
+        isModern ? const PdfColor(1, 1, 1, 0.7) : secondaryGrey;
 
     final paymentMethodLabel =
         invoice.paymentMethod.isNotEmpty ? invoice.paymentMethod : 'Bank Transfer';
     List<pw.InlineSpan> paymentDetailSpans(PdfColor emphasisColor) {
       final emphasized = pw.TextStyle(fontWeight: pw.FontWeight.bold, color: emphasisColor);
       switch (paymentMethodLabel) {
-        case 'QRIS':
-          return [
-            pw.TextSpan(
-                text: business.qrisId.isNotEmpty
-                    ? business.qrisId
-                    : 'Scan the QRIS code to pay.'),
-          ];
         case 'E-Wallet':
           return [
             pw.TextSpan(
@@ -64,63 +66,76 @@ class PdfGenerator {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // Brand accent strip
-              pw.Container(height: 4, width: double.infinity, color: primary),
-              pw.SizedBox(height: 18),
+              // Brand accent strip — Classic only.
+              if (!isModern && !isMinimal) ...[
+                pw.Container(height: 4, width: double.infinity, color: primary),
+                pw.SizedBox(height: 18),
+              ],
 
               // Logo + invoice title | business address & contact
-              pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.ClipRRect(
-                    horizontalRadius: 11,
-                    verticalRadius: 11,
-                    child: business.logoBytes != null
-                        ? pw.Image(
-                            pw.MemoryImage(Uint8List.fromList(business.logoBytes!)),
-                            width: 42,
-                            height: 42,
-                            fit: pw.BoxFit.contain,
-                          )
-                        : pw.Container(
-                            width: 42,
-                            height: 42,
-                            color: primary,
-                            alignment: pw.Alignment.center,
-                            child: pw.Text(
-                              business.businessName.isNotEmpty ? business.businessName[0].toUpperCase() : '?',
-                              style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 18),
+              pw.Container(
+                width: double.infinity,
+                padding: isModern ? const pw.EdgeInsets.all(14) : pw.EdgeInsets.zero,
+                decoration: isModern
+                    ? pw.BoxDecoration(color: primary, borderRadius: pw.BorderRadius.circular(8))
+                    : null,
+                child: pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.ClipRRect(
+                      horizontalRadius: 11,
+                      verticalRadius: 11,
+                      child: business.logoBytes != null
+                          ? pw.Image(
+                              pw.MemoryImage(Uint8List.fromList(business.logoBytes!)),
+                              width: 42,
+                              height: 42,
+                              fit: pw.BoxFit.contain,
+                            )
+                          : pw.Container(
+                              width: 42,
+                              height: 42,
+                              color: isModern ? PdfColors.white : primary,
+                              alignment: pw.Alignment.center,
+                              child: pw.Text(
+                                business.businessName.isNotEmpty ? business.businessName[0].toUpperCase() : '?',
+                                style: pw.TextStyle(
+                                    color: isModern ? primary : PdfColors.white,
+                                    fontWeight: pw.FontWeight.bold,
+                                    fontSize: 18),
+                              ),
                             ),
-                          ),
-                  ),
-                  pw.SizedBox(width: 12),
-                  pw.Expanded(
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text('INVOICE ${invoice.invoiceNumber}',
-                            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontStyle: pw.FontStyle.italic, fontSize: 15, color: dark)),
-                        pw.SizedBox(height: 2),
-                        pw.Text(business.businessName, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: dark)),
-                        if (business.phone.isNotEmpty) pw.Text(business.phone, style: pw.TextStyle(fontSize: 9, color: secondaryGrey)),
-                        if (invoice.poNumber.isNotEmpty)
-                          pw.Text('Ref: ${invoice.poNumber}', style: pw.TextStyle(color: secondaryGrey, fontSize: 9)),
-                      ],
                     ),
-                  ),
-                  pw.SizedBox(
-                    width: 160,
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.end,
-                      children: [
-                        if (business.address.isNotEmpty)
-                          pw.Text(business.address, textAlign: pw.TextAlign.right, style: pw.TextStyle(fontSize: 8.5, color: secondaryGrey)),
-                        if (business.email.isNotEmpty)
-                          pw.Text(business.email, textAlign: pw.TextAlign.right, style: pw.TextStyle(fontSize: 8.5, color: secondaryGrey)),
-                      ],
+                    pw.SizedBox(width: 12),
+                    pw.Expanded(
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('INVOICE ${invoice.invoiceNumber}',
+                              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontStyle: pw.FontStyle.italic, fontSize: 15, color: headerInk)),
+                          pw.SizedBox(height: 2),
+                          pw.Text(business.businessName, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: headerInk)),
+                          if (invoice.poNumber.isNotEmpty)
+                            pw.Text('Ref: ${invoice.poNumber}', style: pw.TextStyle(color: headerMuted, fontSize: 9)),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    pw.SizedBox(
+                      width: 160,
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.end,
+                        children: [
+                          if (business.address.isNotEmpty)
+                            pw.Text(business.address, textAlign: pw.TextAlign.right, style: pw.TextStyle(fontSize: 8.5, color: headerMuted)),
+                          if (business.phone.isNotEmpty)
+                            pw.Text(business.phone, textAlign: pw.TextAlign.right, style: pw.TextStyle(fontSize: 8.5, color: headerMuted)),
+                          if (business.email.isNotEmpty)
+                            pw.Text(business.email, textAlign: pw.TextAlign.right, style: pw.TextStyle(fontSize: 8.5, color: headerMuted)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
               pw.SizedBox(height: 16),
               pw.Divider(color: borderGrey),
@@ -140,6 +155,8 @@ class PdfGenerator {
                         pw.Text(customer?.name ?? 'Walk-in Customer', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
                         if ((customer?.address ?? '').isNotEmpty)
                           pw.Text(customer!.address, style: pw.TextStyle(fontSize: 9, color: secondaryGrey)),
+                        if ((customer?.phone ?? '').isNotEmpty)
+                          pw.Text(customer!.phone, style: pw.TextStyle(fontSize: 9, color: secondaryGrey)),
                       ],
                     ),
                   ),
@@ -237,18 +254,52 @@ class PdfGenerator {
                         children: [
                           pw.Text('PAYMENT INSTRUCTIONS', style: pw.TextStyle(fontSize: 8.5, color: secondaryGrey, fontWeight: pw.FontWeight.bold)),
                           pw.SizedBox(height: 6),
-                          pw.RichText(
-                            text: pw.TextSpan(
-                              style: pw.TextStyle(fontSize: 9.5, color: secondaryGrey),
+                          if (paymentMethodLabel == 'QRIS')
+                            pw.Row(
+                              crossAxisAlignment: pw.CrossAxisAlignment.start,
                               children: [
-                                pw.TextSpan(
-                                  text: '$paymentMethodLabel: ',
-                                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: dark),
+                                pw.Container(
+                                  width: 46,
+                                  height: 46,
+                                  padding: const pw.EdgeInsets.all(3),
+                                  decoration: pw.BoxDecoration(
+                                      border: pw.Border.all(color: borderGrey),
+                                      borderRadius: pw.BorderRadius.circular(4)),
+                                  child: pw.BarcodeWidget(
+                                    barcode: Barcode.qrCode(),
+                                    data: business.qrisId.isNotEmpty ? business.qrisId : 'QRIS',
+                                    drawText: false,
+                                  ),
                                 ),
-                                ...paymentDetailSpans(dark),
+                                pw.SizedBox(width: 10),
+                                pw.Expanded(
+                                  child: pw.Column(
+                                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                    children: [
+                                      pw.Text('QRIS:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.5, color: dark)),
+                                      pw.SizedBox(height: 3),
+                                      pw.Text(
+                                        business.qrisId.isNotEmpty ? business.qrisId : 'Scan the QRIS code to pay.',
+                                        style: pw.TextStyle(fontSize: 9, color: secondaryGrey),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ],
+                            )
+                          else
+                            pw.RichText(
+                              text: pw.TextSpan(
+                                style: pw.TextStyle(fontSize: 9.5, color: secondaryGrey),
+                                children: [
+                                  pw.TextSpan(
+                                    text: '$paymentMethodLabel: ',
+                                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: dark),
+                                  ),
+                                  ...paymentDetailSpans(dark),
+                                ],
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ),

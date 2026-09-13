@@ -585,3 +585,85 @@ class GlassContainer extends StatelessWidget {
     );
   }
 }
+
+/// ------------------------- SEARCH BAR -------------------------
+
+/// Search bar that expands from a compact circular icon (48px) to a full
+/// width text field with an animated icon swap (spec section 9). Shared
+/// between screens (Invoices, Customers, …) so search always looks and
+/// behaves the same way throughout the app.
+class CollapsibleSearchBar extends StatelessWidget {
+  final TextEditingController controller;
+  final bool expanded;
+  final VoidCallback onToggle;
+  final ValueChanged<String> onChanged;
+  final String hintText;
+
+  const CollapsibleSearchBar({
+    super.key,
+    required this.controller,
+    required this.expanded,
+    required this.onToggle,
+    required this.onChanged,
+    required this.hintText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AnimatedContainer(
+      duration: AppDurations.normal,
+      curve: AppCurves.smooth,
+      height: 48,
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: theme.dividerColor),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: onToggle,
+            icon: AnimatedSwitcher(
+              duration: AppDurations.fast,
+              transitionBuilder: (child, anim) =>
+                  ScaleTransition(scale: anim, child: child),
+              child: Icon(
+                expanded ? Icons.arrow_back_rounded : Icons.search_rounded,
+                key: ValueKey(expanded),
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          Expanded(
+            child: AnimatedOpacity(
+              duration: AppDurations.normal,
+              opacity: expanded ? 1 : 0,
+              child: expanded
+                  ? TextField(
+                      controller: controller,
+                      autofocus: true,
+                      onChanged: onChanged,
+                      decoration: InputDecoration(
+                        hintText: hintText,
+                        border: InputBorder.none,
+                        isDense: true,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
+          if (!expanded)
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Text(hintText,
+                  style: const TextStyle(
+                      color: AppColors.textSecondary, fontSize: 13.5)),
+            ),
+        ],
+      ),
+    );
+  }
+}

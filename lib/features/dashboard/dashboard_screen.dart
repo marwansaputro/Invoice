@@ -88,7 +88,7 @@ class DashboardScreen extends ConsumerWidget {
             padding: const EdgeInsets.only(top: 18),
             sliver: SliverToBoxAdapter(
               child: SizedBox(
-                height: 118,
+                height: 148,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -99,6 +99,7 @@ class DashboardScreen extends ConsumerWidget {
                       child: _StatChip(
                           label: 'Paid',
                           value: stats.paid,
+                          total: stats.total,
                           color: AppColors.success,
                           icon: Icons.check_circle_rounded),
                     ),
@@ -109,6 +110,7 @@ class DashboardScreen extends ConsumerWidget {
                       child: _StatChip(
                           label: 'Pending',
                           value: stats.pending,
+                          total: stats.total,
                           color: AppColors.warning,
                           icon: Icons.schedule_rounded),
                     ),
@@ -119,6 +121,7 @@ class DashboardScreen extends ConsumerWidget {
                       child: _StatChip(
                           label: 'Overdue',
                           value: stats.overdue,
+                          total: stats.total,
                           color: AppColors.danger,
                           icon: Icons.error_rounded),
                     ),
@@ -336,16 +339,19 @@ class _RevenueCard extends StatelessWidget {
 class _StatChip extends StatelessWidget {
   final String label;
   final double value;
+  final double total;
   final Color color;
   final IconData icon;
   const _StatChip(
       {required this.label,
       required this.value,
+      required this.total,
       required this.color,
       required this.icon});
 
   @override
   Widget build(BuildContext context) {
+    final pct = total > 0 ? (value / total * 100).clamp(0, 100) : 0.0;
     return Container(
       width: 168,
       padding: const EdgeInsets.all(16),
@@ -357,16 +363,34 @@ class _StatChip extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-                color: color.withOpacity(0.14),
-                borderRadius: BorderRadius.circular(10)),
-            alignment: Alignment.center,
-            child: Icon(icon, size: 16, color: color),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                    color: color.withOpacity(0.14),
+                    borderRadius: BorderRadius.circular(10)),
+                alignment: Alignment.center,
+                child: Icon(icon, size: 16, color: color),
+              ),
+              if (total > 0)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                      color: color.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(20)),
+                  child: Text('${pct.toStringAsFixed(0)}%',
+                      style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w800,
+                          color: color)),
+                ),
+            ],
           ),
-          const Spacer(),
+          const SizedBox(height: 14),
           Text(label,
               style: const TextStyle(
                   color: AppColors.textSecondary,
@@ -377,6 +401,16 @@ class _StatChip extends StatelessWidget {
               value: value,
               style:
                   const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: LinearProgressIndicator(
+              value: total > 0 ? pct / 100 : 0,
+              minHeight: 4,
+              backgroundColor: color.withOpacity(0.12),
+              valueColor: AlwaysStoppedAnimation(color),
+            ),
+          ),
         ],
       ),
     );

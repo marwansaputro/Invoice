@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../models/models.dart';
 import '../animations/app_motion.dart';
@@ -266,33 +267,49 @@ class InvoicePaper extends StatelessWidget {
   final Customer? customer;
   final BusinessProfile business;
 
+  /// 0 = Classic, 1 = Modern, 2 = Minimal. See [InvoiceTemplates].
+  final int template;
+
   const InvoicePaper(
       {super.key,
       required this.invoice,
       required this.customer,
-      required this.business});
+      required this.business,
+      this.template = 0});
 
   @override
   Widget build(BuildContext context) {
+    final isModern = template == 1;
+    final isMinimal = template == 2;
+    final Color brandColor =
+        isMinimal ? const Color(0xFF3A3A3A) : AppColors.primary;
+    final Color headerInk = isModern ? Colors.white : _paperInk;
+    final Color headerMuted = isModern ? Colors.white70 : _paperMuted;
+
     return Container(
       width: double.infinity,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.10),
-              blurRadius: 28,
-              offset: const Offset(0, 12)),
-        ],
+        border:
+            isMinimal ? Border.all(color: Colors.black.withOpacity(0.12)) : null,
+        boxShadow: isMinimal
+            ? null
+            : [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.10),
+                    blurRadius: 28,
+                    offset: const Offset(0, 12)),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Brand accent strip
-          Container(
-              height: 5, width: double.infinity, color: AppColors.primary),
+          // Brand accent strip — Classic only; Modern uses a colored
+          // header card instead, Minimal stays monochrome.
+          if (!isModern && !isMinimal)
+            Container(height: 5, width: double.infinity, color: brandColor),
           Padding(
             padding: const EdgeInsets.all(22),
             child: Column(
@@ -304,8 +321,9 @@ class InvoicePaper extends StatelessWidget {
                 // letter-by-letter wrap.
                 LayoutBuilder(builder: (context, constraints) {
                   final isNarrow = constraints.maxWidth < 380;
-                  final hasAddressBlock =
-                      business.address.isNotEmpty || business.email.isNotEmpty;
+                  final hasAddressBlock = business.address.isNotEmpty ||
+                      business.phone.isNotEmpty ||
+                      business.email.isNotEmpty;
 
                   final addressBlock = !hasAddressBlock
                       ? const SizedBox.shrink()
@@ -319,11 +337,23 @@ class InvoicePaper extends StatelessWidget {
                                   textAlign: isNarrow
                                       ? TextAlign.left
                                       : TextAlign.right,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
-                                      color: _paperMuted,
+                                      color: headerMuted,
                                       height: 1.5)),
+                            if (business.phone.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Text(business.phone,
+                                    textAlign: isNarrow
+                                        ? TextAlign.left
+                                        : TextAlign.right,
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: headerMuted)),
+                              ),
                             if (business.email.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 2),
@@ -331,10 +361,10 @@ class InvoicePaper extends StatelessWidget {
                                     textAlign: isNarrow
                                         ? TextAlign.left
                                         : TextAlign.right,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w500,
-                                        color: _paperMuted)),
+                                        color: headerMuted)),
                               ),
                           ],
                         );
@@ -357,14 +387,16 @@ class InvoicePaper extends StatelessWidget {
                               : Container(
                                   width: 52,
                                   height: 52,
-                                  color: AppColors.primary,
+                                  color: isModern ? Colors.white : brandColor,
                                   alignment: Alignment.center,
                                   child: Text(
                                     business.businessName.isNotEmpty
                                         ? business.businessName[0].toUpperCase()
                                         : '?',
-                                    style: const TextStyle(
-                                        color: Colors.white,
+                                    style: TextStyle(
+                                        color: isModern
+                                            ? brandColor
+                                            : Colors.white,
                                         fontWeight: FontWeight.w900,
                                         fontSize: 22),
                                   ),
@@ -382,37 +414,28 @@ class InvoicePaper extends StatelessWidget {
                               runSpacing: 4,
                               children: [
                                 Text('INVOICE ${invoice.invoiceNumber}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontWeight: FontWeight.w900,
                                         fontStyle: FontStyle.italic,
                                         fontSize: 18,
-                                        color: _paperInk)),
+                                        color: headerInk)),
                                 StatusBadge(status: invoice.status),
                               ],
                             ),
                             const SizedBox(height: 4),
                             Text(business.businessName,
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontWeight: FontWeight.w800,
                                     fontSize: 14,
-                                    color: _paperInk)),
-                            if (business.phone.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 2),
-                                child: Text(business.phone,
-                                    style: const TextStyle(
-                                        fontSize: 12.5,
-                                        fontWeight: FontWeight.w500,
-                                        color: _paperMuted)),
-                              ),
+                                    color: headerInk)),
                             if (invoice.poNumber.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 2),
                                 child: Text('Ref: ${invoice.poNumber}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w500,
-                                        color: _paperMuted)),
+                                        color: headerMuted)),
                               ),
                             if (isNarrow && hasAddressBlock) ...[
                               const SizedBox(height: 8),
@@ -428,7 +451,17 @@ class InvoicePaper extends StatelessWidget {
                     ],
                   );
 
-                  return titleRow;
+                  if (!isModern) return titleRow;
+
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: brandColor,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: titleRow,
+                  );
                 }),
                 const SizedBox(height: 18),
                 const Divider(height: 1),
@@ -459,6 +492,15 @@ class InvoicePaper extends StatelessWidget {
                             Padding(
                               padding: const EdgeInsets.only(top: 3),
                               child: Text(customer!.address,
+                                  style: const TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w500,
+                                      color: _paperMuted)),
+                            ),
+                          if ((customer?.phone ?? '').isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 3),
+                              child: Text(customer!.phone,
                                   style: const TextStyle(
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w500,
@@ -508,7 +550,7 @@ class InvoicePaper extends StatelessWidget {
                   final qtyStr = item.quantity
                       .toStringAsFixed(item.quantity % 1 == 0 ? 0 : 1);
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.only(bottom: 8),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -522,7 +564,7 @@ class InvoicePaper extends StatelessWidget {
                                       fontWeight: FontWeight.w700,
                                       height: 1.3,
                                       color: _paperInk)),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 2),
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 4,
@@ -558,7 +600,7 @@ class InvoicePaper extends StatelessWidget {
                         const SizedBox(width: 12),
                         Text(AppFormatters.money(item.lineTotal),
                             style: const TextStyle(
-                                fontSize: 15,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w800,
                                 color: _paperInk)),
                       ],
@@ -631,16 +673,65 @@ class InvoicePaper extends StatelessWidget {
                               fontSize: 14,
                               color: _paperInk,
                               fontWeight: FontWeight.w800);
+
+                          if (method == 'QRIS') {
+                            final qrisId = business.qrisId;
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 60,
+                                  height: 60,
+                                  padding: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border:
+                                        Border.all(color: Colors.black12),
+                                  ),
+                                  child: qrisId.isNotEmpty
+                                      ? QrImageView(
+                                          data: qrisId,
+                                          backgroundColor: Colors.white,
+                                          eyeStyle: const QrEyeStyle(
+                                              color: _paperInk),
+                                          dataModuleStyle:
+                                              const QrDataModuleStyle(
+                                                  color: _paperInk),
+                                        )
+                                      : const Icon(Icons.qr_code_2_rounded,
+                                          color: _paperMuted, size: 32),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('QRIS: ',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 13,
+                                              color: _paperInk)),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        qrisId.isNotEmpty
+                                            ? qrisId
+                                            : 'Scan the QRIS code to pay.',
+                                        style: const TextStyle(
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.w500,
+                                            color: _paperMuted),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+
                           final List<InlineSpan> detailSpans;
                           switch (method) {
-                            case 'QRIS':
-                              detailSpans = [
-                                TextSpan(
-                                    text: business.qrisId.isNotEmpty
-                                        ? business.qrisId
-                                        : 'Scan the QRIS code to pay.'),
-                              ];
-                              break;
                             case 'E-Wallet':
                               detailSpans = [
                                 TextSpan(
@@ -704,9 +795,9 @@ class InvoicePaper extends StatelessWidget {
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(flex: 4, child: totalsBox),
-                      const SizedBox(width: 14),
                       Expanded(flex: 5, child: paymentBox),
+                      const SizedBox(width: 14),
+                      Expanded(flex: 4, child: totalsBox),
                     ],
                   );
                 }),

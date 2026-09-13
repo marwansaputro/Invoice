@@ -1,21 +1,19 @@
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:signature/signature.dart';
 import '../../core/animations/app_motion.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
-import '../../core/widgets/invoice_widgets.dart';
 import '../../data/repositories/repositories.dart';
 import '../../models/models.dart';
 import '../customers/add_customer_sheet.dart';
 import '../invoice_preview/invoice_preview_screen.dart';
 import '../settings/settings_screen.dart' show BusinessProfileSheet;
 import '../../data/database/app_database.dart';
-import 'add_item_sheet.dart';
+import 'invoice_items_screen.dart';
 
 /// Create / Edit Invoice screen. When [existingInvoiceId] is provided the
 /// form is pre-filled for editing; otherwise a fresh draft is built.
@@ -129,19 +127,9 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
     if (mounted) setState(() {});
   }
 
-  Future<void> _addItem() async {
-    final item = await Navigator.of(context).push<InvoiceItem>(SlideFadeRoute(page: const AddItemSheet()));
-    if (item != null) setState(() => _items.add(item));
-  }
-
-  Future<void> _editItem(InvoiceItem item) async {
-    final updated = await Navigator.of(context).push<InvoiceItem>(SlideFadeRoute(page: AddItemSheet(existing: item)));
-    if (updated != null) {
-      setState(() {
-        final index = _items.indexWhere((i) => i.id == item.id);
-        if (index != -1) _items[index] = updated;
-      });
-    }
+  Future<void> _manageItems() async {
+    await Navigator.of(context).push(SlideFadeRoute(page: InvoiceItemsScreen(items: _items)));
+    if (mounted) setState(() {});
   }
 
   Future<void> _pickAttachment() async {
@@ -388,27 +376,22 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Items
+            // Items — the list itself lives on its own page; this row is
+            // just a summary/entry point into it.
             _FlatRow(
               icon: Icons.add_circle_rounded,
               iconColor: AppColors.themedPrimary(context),
-              onTap: _addItem,
+              onTap: _manageItems,
               trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
-              child: const Text('Add Item', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w700, fontSize: 14)),
-            ),
-            if (_items.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              ..._items.map(
-                (item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: InvoiceItemRow(
-                    item: item,
-                    onTap: () => _editItem(item),
-                    onDelete: () => setState(() => _items.removeWhere((i) => i.id == item.id)),
-                  ),
+              child: Text(
+                _items.isEmpty ? 'Add Item' : '${_items.length} Item${_items.length > 1 ? 's' : ''}',
+                style: TextStyle(
+                  color: _items.isEmpty ? AppColors.textSecondary : null,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
                 ),
               ),
-            ],
+            ),
             const SizedBox(height: 10),
             _DarkBar(label: 'Subtotal', value: _subtotal),
             const SizedBox(height: 16),
@@ -751,8 +734,10 @@ class _SignatureSheet extends StatelessWidget {
   }
 }
 
-/// Free-hand signature capture pad — draws strokes on a canvas and
-/// exports the result as PNG bytes whenever a stroke is completed.
+/// Free-hand signature capture pad built on the `signature` package, which
+/// handles touch/mouse/stylus input (including pressure-sensitive styluses)
+/// natively — far more reliable than a hand-rolled GestureDetector — and
+/// exports the drawn strokes as a transparent PNG whenever a stroke ends.
 class _SignaturePad extends StatefulWidget {
   final Uint8List? initialBytes;
   final ValueChanged<Uint8List?> onChanged;
@@ -763,27 +748,31 @@ class _SignaturePad extends StatefulWidget {
 }
 
 class _SignaturePadState extends State<_SignaturePad> {
-  final _repaintKey = GlobalKey();
-  final List<Offset?> _points = [];
-  bool _hasDrawn = false;
+  late final SignatureController _controller;
 
-  void _addPoint(Offset point) => setState(() => _points.add(point));
-  void _endStroke() => setState(() => _points.add(null));
+  @override
+  void initState() {
+    super.initState();
+    _controller = SignatureController(
+      penStrokeWidth: 2.4,
+      penColor: AppColors.textPrimary,
+      onDrawEnd: _capture,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   Future<void> _capture() async {
-    final boundary = _repaintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-    if (boundary == null) return;
-    final image = await boundary.toImage(pixelRatio: 2);
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    if (byteData == null) return;
-    widget.onChanged(byteData.buffer.asUint8List());
+    final bytes = await _controller.toPngBytes();
+    widget.onChanged(bytes);
   }
 
   void _clear() {
-    setState(() {
-      _points.clear();
-      _hasDrawn = false;
-    });
+    _controller.clear();
     widget.onChanged(null);
   }
 
@@ -795,68 +784,45 @@ class _SignaturePadState extends State<_SignaturePad> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Draw below', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5, color: AppColors.textSecondary)),
+            Text(
+              widget.initialBytes != null
+                  ? 'Draw below to replace the current signature'
+                  : 'Draw below',
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5, color: AppColors.textSecondary),
+            ),
             TextButton(onPressed: _clear, child: const Text('Clear')),
           ],
         ),
+        if (widget.initialBytes != null) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Text('Current: ', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  color: const Color(0xFFF4F5F7),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Image.memory(widget.initialBytes!, height: 32, fit: BoxFit.contain),
+                ),
+              ),
+            ],
+          ),
+        ],
+        const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(14),
-          child: Container(
-            height: 180,
+          child: Signature(
+            controller: _controller,
             width: double.infinity,
-            color: const Color(0xFFF4F5F7),
-            child: RepaintBoundary(
-              key: _repaintKey,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (widget.initialBytes != null && !_hasDrawn)
-                    Image.memory(widget.initialBytes!, fit: BoxFit.contain),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onPanStart: (d) {
-                      _hasDrawn = true;
-                      _addPoint(d.localPosition);
-                    },
-                    onPanUpdate: (d) => _addPoint(d.localPosition),
-                    onPanEnd: (_) {
-                      _endStroke();
-                      _capture();
-                    },
-                    child: CustomPaint(
-                      painter: _SignaturePainter(_points),
-                      size: Size.infinite,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            height: 180,
+            backgroundColor: const Color(0xFFF4F5F7),
+            dynamicPressureSupported: true,
           ),
         ),
       ],
     );
   }
-}
-
-class _SignaturePainter extends CustomPainter {
-  final List<Offset?> points;
-  _SignaturePainter(this.points);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.textPrimary
-      ..strokeWidth = 2.4
-      ..strokeCap = StrokeCap.round;
-    for (int i = 0; i < points.length - 1; i++) {
-      final a = points[i];
-      final b = points[i + 1];
-      if (a != null && b != null) canvas.drawLine(a, b, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _SignaturePainter oldDelegate) => oldDelegate.points != points;
 }
 
 class _CustomerPickerSheet extends StatelessWidget {

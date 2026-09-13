@@ -1,4 +1,5 @@
 import 'package:uuid/uuid.dart';
+
 import '../models/models.dart';
 import 'database/app_database.dart';
 
@@ -11,7 +12,8 @@ class DummyData {
   DummyData._();
 
   static Future<void> seedIfEmpty() async {
-    if (AppDatabase.customersBox.isNotEmpty || AppDatabase.invoicesBox.isNotEmpty) {
+    if (AppDatabase.customersBox.isNotEmpty ||
+        AppDatabase.invoicesBox.isNotEmpty) {
       return;
     }
 
@@ -31,7 +33,8 @@ class DummyData {
         phone: c[1],
         email: c[2],
         address: c[3],
-        createdAt: DateTime.now().subtract(Duration(days: 60 + customers.length * 10)),
+        createdAt:
+            DateTime.now().subtract(Duration(days: 60 + customers.length * 10)),
       );
       AppDatabase.customersBox.put(customer.id, customer);
       customers.add(customer);

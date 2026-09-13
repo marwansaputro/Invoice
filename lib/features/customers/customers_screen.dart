@@ -16,6 +16,7 @@ class CustomersScreen extends ConsumerStatefulWidget {
 }
 
 class _CustomersScreenState extends ConsumerState<CustomersScreen> {
+  bool _searching = false;
   final _searchController = TextEditingController();
   String _query = '';
 
@@ -83,27 +84,20 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Container(
-              height: 48,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardTheme.color,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Theme.of(context).dividerColor),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.search_rounded, size: 20, color: AppColors.textSecondary),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (v) => setState(() => _query = v),
-                      decoration: const InputDecoration(hintText: 'Search customer', border: InputBorder.none, isDense: true),
-                    ),
-                  ),
-                ],
-              ),
+            child: CollapsibleSearchBar(
+              controller: _searchController,
+              expanded: _searching,
+              hintText: 'Search customer...',
+              onToggle: () {
+                setState(() {
+                  _searching = !_searching;
+                  if (!_searching) {
+                    _searchController.clear();
+                    _query = '';
+                  }
+                });
+              },
+              onChanged: (v) => setState(() => _query = v),
             ),
           ),
           const SizedBox(height: 12),

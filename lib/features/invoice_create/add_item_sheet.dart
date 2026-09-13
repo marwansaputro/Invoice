@@ -11,7 +11,7 @@ const _uuid = Uuid();
 /// a flat Rupiah amount, or a percentage of the item's line subtotal.
 enum _DiscountType { flat, percent }
 
-/// Full-page form for adding or editing a single invoice item
+/// Bottom sheet form for adding or editing a single invoice item
 /// (spec section 12): name, price, quantity, discount, tax.
 class AddItemSheet extends StatefulWidget {
   final InvoiceItem? existing;
@@ -75,77 +75,71 @@ class _AddItemSheetState extends State<AddItemSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.existing != null ? 'Edit Item' : 'Add Item'),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppTextField(label: 'Product Name', controller: _name, hint: 'e.g. Waffle Tinggi Ori'),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: AppTextField(
-                      label: 'Price',
-                      controller: _price,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      prefix: const Padding(padding: EdgeInsets.only(left: 14), child: Text('Rp', style: TextStyle(color: AppColors.textSecondary))),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: AppTextField(
-                      label: 'Quantity',
-                      controller: _qty,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    ),
-                  ),
-                ],
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(widget.existing != null ? 'Edit Item' : 'Add Item',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 18),
+        AppTextField(label: 'Product Name', controller: _name, hint: 'e.g. Waffle Tinggi Ori'),
+        const SizedBox(height: 14),
+        Row(
+          children: [
+            Expanded(
+              child: AppTextField(
+                label: 'Price',
+                controller: _price,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                prefix: const Padding(padding: EdgeInsets.only(left: 14), child: Text('Rp', style: TextStyle(color: AppColors.textSecondary))),
               ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: AppTextField(
-                      label: 'Discount',
-                      controller: _discount,
-                      hint: '0',
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      suffix: _DiscountTypeDropdown(
-                        value: _discountType,
-                        onChanged: (v) => setState(() => _discountType = v),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: AppTextField(
-                      label: 'Tax',
-                      controller: _tax,
-                      hint: AppDatabase.settings.defaultTaxPercent > 0
-                          ? '0 (default ${AppDatabase.settings.defaultTaxPercent.toStringAsFixed(0)}%)'
-                          : '0',
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    ),
-                  ),
-                ],
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: AppTextField(
+                label: 'Quantity',
+                controller: _qty,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
-              const SizedBox(height: 22),
-              AppButton(
-                label: widget.existing != null ? 'Save Changes' : 'Add Item',
-                icon: Icons.check_rounded,
-                expand: true,
-                onPressed: _submit,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ),
+        const SizedBox(height: 14),
+        Row(
+          children: [
+            Expanded(
+              child: AppTextField(
+                label: 'Discount',
+                controller: _discount,
+                hint: '0',
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                suffix: _DiscountTypeDropdown(
+                  value: _discountType,
+                  onChanged: (v) => setState(() => _discountType = v),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: AppTextField(
+                label: 'Tax',
+                controller: _tax,
+                hint: AppDatabase.settings.defaultTaxPercent > 0
+                    ? '0 (default ${AppDatabase.settings.defaultTaxPercent.toStringAsFixed(0)}%)'
+                    : '0',
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 22),
+        AppButton(
+          label: widget.existing != null ? 'Save Changes' : 'Add Item',
+          icon: Icons.check_rounded,
+          expand: true,
+          onPressed: _submit,
+        ),
+      ],
     );
   }
 }

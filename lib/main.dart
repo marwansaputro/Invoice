@@ -32,7 +32,7 @@ class InvoicelyApp extends ConsumerWidget {
         mode = ThemeMode.system;
     }
     return MaterialApp(
-      title: 'Invoicely',
+      title: 'Invoice PIP',
       debugShowCheckedModeBanner: false,
       themeMode: mode,
       theme: AppTheme.light(),
