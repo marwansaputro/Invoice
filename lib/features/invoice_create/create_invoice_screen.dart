@@ -130,12 +130,12 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
   }
 
   Future<void> _addItem() async {
-    final item = await showAppBottomSheet<InvoiceItem>(context, child: const AddItemSheet());
+    final item = await Navigator.of(context).push<InvoiceItem>(SlideFadeRoute(page: const AddItemSheet()));
     if (item != null) setState(() => _items.add(item));
   }
 
   Future<void> _editItem(InvoiceItem item) async {
-    final updated = await showAppBottomSheet<InvoiceItem>(context, child: AddItemSheet(existing: item));
+    final updated = await Navigator.of(context).push<InvoiceItem>(SlideFadeRoute(page: AddItemSheet(existing: item)));
     if (updated != null) {
       setState(() {
         final index = _items.indexWhere((i) => i.id == item.id);

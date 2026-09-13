@@ -694,9 +694,9 @@ class InvoicePaper extends StatelessWidget {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        paymentBox,
-                        const SizedBox(height: 16),
                         totalsBox,
+                        const SizedBox(height: 16),
+                        paymentBox,
                       ],
                     );
                   }
