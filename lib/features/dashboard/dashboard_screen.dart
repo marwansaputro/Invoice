@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/animations/app_motion.dart';
+import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/invoice_widgets.dart';
 import '../../core/widgets/widgets.dart';
@@ -15,12 +16,12 @@ import '../invoices/invoices_screen.dart';
 import '../settings/settings_screen.dart';
 
 /// Greeting shown at the top of the dashboard, based on the time of day.
-String _greeting() {
+String _greeting(bool isId) {
   final hour = DateTime.now().hour;
-  if (hour >= 00 && hour < 12) return 'Good morning 👋';
-  if (hour >= 12 && hour < 17) return 'Good afternoon ☀️';
-  if (hour >= 17 && hour < 21) return 'Good evening 🌆';
-  return 'Good night 🌙';
+  if (hour >= 00 && hour < 12) return isId ? 'Selamat pagi 👋' : 'Good morning 👋';
+  if (hour >= 12 && hour < 17) return isId ? 'Selamat siang ☀️' : 'Good afternoon ☀️';
+  if (hour >= 17 && hour < 21) return isId ? 'Selamat sore 🌆' : 'Good evening 🌆';
+  return isId ? 'Selamat malam 🌙' : 'Good night 🌙';
 }
 
 class DashboardScreen extends ConsumerWidget {
@@ -32,6 +33,7 @@ class DashboardScreen extends ConsumerWidget {
     final customers = ref.watch(customerRepositoryProvider);
     final stats = ref.watch(dashboardStatsProvider);
     final recent = invoices.take(4).toList();
+    final l10n = AppStrings(ref.watch(localeProvider));
 
     String customerName(String id) {
       try {
@@ -55,19 +57,19 @@ class DashboardScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(_greeting(),
+                          Text(_greeting(l10n.locale == 'id'),
                               style: const TextStyle(
                                   fontSize: 20, fontWeight: FontWeight.w800)),
                           const SizedBox(height: 4),
-                          const Text('Manage your invoices easily',
-                              style: TextStyle(
+                          Text(l10n.manageInvoicesEasily,
+                              style: const TextStyle(
                                   color: AppColors.textSecondary,
                                   fontSize: 13.5)),
                         ],
                       ),
                     ),
-                    _IconBubble(
-                        icon: Icons.notifications_none_rounded, onTap: () {}),
+                    // _IconBubble(
+                    //     icon: Icons.notifications_none_rounded, onTap: () {}),
                     const SizedBox(width: 10),
                     _ProfileBadge(business: AppDatabase.business),
                   ],
@@ -97,7 +99,7 @@ class DashboardScreen extends ConsumerWidget {
                       delay: const Duration(milliseconds: 100),
                       offsetY: 16,
                       child: _StatChip(
-                          label: 'Paid',
+                          label: l10n.paid,
                           value: stats.paid,
                           total: stats.total,
                           color: AppColors.success,
@@ -108,7 +110,7 @@ class DashboardScreen extends ConsumerWidget {
                       delay: const Duration(milliseconds: 180),
                       offsetY: 16,
                       child: _StatChip(
-                          label: 'Pending',
+                          label: l10n.pending,
                           value: stats.pending,
                           total: stats.total,
                           color: AppColors.warning,
@@ -119,7 +121,7 @@ class DashboardScreen extends ConsumerWidget {
                       delay: const Duration(milliseconds: 260),
                       offsetY: 16,
                       child: _StatChip(
-                          label: 'Overdue',
+                          label: l10n.overdue,
                           value: stats.overdue,
                           total: stats.total,
                           color: AppColors.danger,
@@ -136,14 +138,14 @@ class DashboardScreen extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Recent Invoices',
+                  Text(l10n.recentInvoices,
                       style:
-                          TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                          const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
                   TextButton(
                     onPressed: () => Navigator.of(context)
                         .push(SlideFadeRoute(page: const InvoicesScreen())),
-                    child: const Text('See All',
-                        style: TextStyle(fontWeight: FontWeight.w700)),
+                    child: Text(l10n.seeAll,
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 ],
               ),
@@ -154,9 +156,8 @@ class DashboardScreen extends ConsumerWidget {
               child: SizedBox(
                 height: 320,
                 child: EmptyState(
-                  title: 'No invoices yet',
-                  message:
-                      'Create your first invoice and start tracking your payments.',
+                  title: l10n.noInvoicesYetTitle,
+                  message: l10n.noInvoicesYetMessage,
                 ),
               ),
             )

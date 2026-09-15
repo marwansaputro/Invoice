@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/animations/app_motion.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/widgets/widgets.dart';
 import '../../core/widgets/invoice_widgets.dart';
+import '../../core/widgets/widgets.dart';
 import '../../data/repositories/repositories.dart';
 import '../../models/models.dart';
 import 'invoice_detail_screen.dart';
@@ -81,7 +82,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
+            const Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: AnimatedEntry(
                 offsetY: 10,

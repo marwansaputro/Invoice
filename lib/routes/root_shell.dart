@@ -1,8 +1,11 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/animations/app_motion.dart';
+import '../core/localization/app_strings.dart';
 import '../core/theme/app_theme.dart';
+import '../data/repositories/repositories.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/invoices/invoices_screen.dart';
 import '../features/customers/customers_screen.dart';
@@ -76,7 +79,7 @@ class _RootShellState extends State<RootShell> {
 
 /// Floating pill-shaped bottom bar with a raised circular "Create Invoice"
 /// button embedded in its center notch, per the reference design.
-class _FloatingNavBar extends StatelessWidget {
+class _FloatingNavBar extends ConsumerWidget {
   final int index;
   final bool showFab;
   final ValueChanged<int> onSelect;
@@ -90,14 +93,16 @@ class _FloatingNavBar extends StatelessWidget {
   });
 
   static const _items = [
-    (icon: Icons.space_dashboard_outlined, selectedIcon: Icons.space_dashboard_rounded, label: 'Dashboard'),
-    (icon: Icons.receipt_long_outlined, selectedIcon: Icons.receipt_long_rounded, label: 'Invoices'),
-    (icon: Icons.people_alt_outlined, selectedIcon: Icons.people_alt_rounded, label: 'Customers'),
-    (icon: Icons.settings_outlined, selectedIcon: Icons.settings_rounded, label: 'Settings'),
+    (icon: Icons.space_dashboard_outlined, selectedIcon: Icons.space_dashboard_rounded),
+    (icon: Icons.receipt_long_outlined, selectedIcon: Icons.receipt_long_rounded),
+    (icon: Icons.people_alt_outlined, selectedIcon: Icons.people_alt_rounded),
+    (icon: Icons.settings_outlined, selectedIcon: Icons.settings_rounded),
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppStrings(ref.watch(localeProvider));
+    final labels = [l10n.navDashboard, l10n.navInvoices, l10n.navCustomers, l10n.navSettings];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Stack(
@@ -122,11 +127,11 @@ class _FloatingNavBar extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Expanded(child: _navItem(0)),
-                      Expanded(child: _navItem(1)),
+                      Expanded(child: _navItem(0, labels[0])),
+                      Expanded(child: _navItem(1, labels[1])),
                       const SizedBox(width: 68),
-                      Expanded(child: _navItem(2)),
-                      Expanded(child: _navItem(3)),
+                      Expanded(child: _navItem(2, labels[2])),
+                      Expanded(child: _navItem(3, labels[3])),
                     ],
                   ),
                 );
@@ -142,7 +147,7 @@ class _FloatingNavBar extends StatelessWidget {
     );
   }
 
-  Widget _navItem(int i) {
+  Widget _navItem(int i, String label) {
     final item = _items[i];
     final selected = index == i;
     final color = selected ? AppColors.primary : AppColors.textSecondary;
@@ -163,7 +168,7 @@ class _FloatingNavBar extends StatelessWidget {
                   size: 22,
                 ),
                 const SizedBox(height: 4),
-                Text(item.label),
+                Text(label),
               ],
             ),
           ),

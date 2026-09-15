@@ -114,7 +114,7 @@ class _ConfirmDeleteCustomerDialog extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 32),
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Theme.of(context).cardTheme.color,
+            color: AppColors.solidSurface(context),
             borderRadius: BorderRadius.circular(22),
           ),
           child: Column(

@@ -648,7 +648,12 @@ class CollapsibleSearchBar extends StatelessWidget {
                       onChanged: onChanged,
                       decoration: InputDecoration(
                         hintText: hintText,
+                        filled: false,
                         border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                         isDense: true,
                       ),
                     )

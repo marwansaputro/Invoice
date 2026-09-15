@@ -34,6 +34,14 @@ class AppColors {
   /// [secondary] tone, which is just as low-contrast on a dark card.
   static Color themedSecondary(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark ? skyBlue : secondary;
+
+  /// A fully opaque surface color for dialogs/pop-ups. Regular cards use
+  /// [cardTheme]'s translucent color paired with a blurred backdrop for
+  /// the glassmorphism look, but pop-up dialogs render without that blur
+  /// — using the translucent card color there lets whatever sits behind
+  /// them show through, so pop-ups use this solid color instead.
+  static Color solidSurface(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkSurface : surface;
 }
 
 class AppTheme {

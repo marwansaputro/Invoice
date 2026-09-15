@@ -309,13 +309,14 @@ class BusinessProfile extends HiveObject {
   String eWalletNumber;
 
   BusinessProfile({
-    this.businessName = 'Purnama Eskrim Powder',
-    this.address = 'Jl. Kembaran RT. 03, Tamantirto, Kasihan, Bantul, Yogyakarta.',
-    this.phone = '',
+    this.businessName = 'PURNAMA ICE CREAM POWDER',
+    this.address =
+        'Jl. Kembaran RT. 03, Tamantirto, Kasihan, Bantul, Yogyakarta.',
+    this.phone = '0895-0596-6486',
     this.email = '',
     this.bankName = 'BCA',
-    this.bankAccountName = 'CV. Maurindo Purnama Abadi',
-    this.bankAccountNumber = '',
+    this.bankAccountName = 'CV Maurindo Purnama Abadi',
+    this.bankAccountNumber = '8465999477',
     List<String>? acceptedPaymentMethods,
     this.logoBytes,
     this.qrisId = '',
@@ -390,6 +391,10 @@ class InvoiceSettingsModel extends HiveObject {
   int themeMode; // 0 = system, 1 = light, 2 = dark
   bool notificationsEnabled;
   int invoiceTemplate; // 0 = Classic, 1 = Modern, 2 = Minimal
+  List<int>? savedSignatureBytes;
+  bool savedIsApproved;
+  String savedApproverName;
+  String locale; // 'en' or 'id'
 
   InvoiceSettingsModel({
     this.currencySymbol = 'Rp',
@@ -400,6 +405,10 @@ class InvoiceSettingsModel extends HiveObject {
     this.themeMode = 0,
     this.notificationsEnabled = true,
     this.invoiceTemplate = 0,
+    this.savedSignatureBytes,
+    this.savedIsApproved = false,
+    this.savedApproverName = '',
+    this.locale = 'en',
   });
 }
 
@@ -422,13 +431,17 @@ class InvoiceSettingsAdapter extends TypeAdapter<InvoiceSettingsModel> {
       themeMode: fields[5] as int? ?? 0,
       notificationsEnabled: fields[6] as bool? ?? true,
       invoiceTemplate: fields[7] as int? ?? 0,
+      savedSignatureBytes: (fields[8] as List?)?.cast<int>(),
+      savedIsApproved: fields[9] as bool? ?? false,
+      savedApproverName: fields[10] as String? ?? '',
+      locale: fields[11] as String? ?? 'en',
     );
   }
 
   @override
   void write(BinaryWriter writer, InvoiceSettingsModel obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.currencySymbol)
       ..writeByte(1)
@@ -444,6 +457,14 @@ class InvoiceSettingsAdapter extends TypeAdapter<InvoiceSettingsModel> {
       ..writeByte(6)
       ..write(obj.notificationsEnabled)
       ..writeByte(7)
-      ..write(obj.invoiceTemplate);
+      ..write(obj.invoiceTemplate)
+      ..writeByte(8)
+      ..write(obj.savedSignatureBytes)
+      ..writeByte(9)
+      ..write(obj.savedIsApproved)
+      ..writeByte(10)
+      ..write(obj.savedApproverName)
+      ..writeByte(11)
+      ..write(obj.locale);
   }
 }

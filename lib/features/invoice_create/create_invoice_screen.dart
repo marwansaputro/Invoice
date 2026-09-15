@@ -80,9 +80,15 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
       _invoiceNumber = ref.read(invoiceRepositoryProvider.notifier).generateInvoiceNumber();
       _invoiceDate = DateTime.now();
       _notesController.text = 'Thank you for shopping with us!';
+      final settings = AppDatabase.settings;
+      _signatureBytes = settings.savedSignatureBytes != null
+          ? Uint8List.fromList(settings.savedSignatureBytes!)
+          : null;
+      _isApproved = settings.savedIsApproved;
     }
     _poController = TextEditingController(text: existing?.poNumber ?? '');
-    _approverController = TextEditingController(text: existing?.approverName ?? '');
+    _approverController = TextEditingController(
+        text: existing?.approverName ?? AppDatabase.settings.savedApproverName);
   }
 
   String _trim(double v) => v % 1 == 0 ? v.toInt().toString() : v.toString();
@@ -227,6 +233,11 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
     invoice.signatureBytes = _signatureBytes;
     invoice.isApproved = _isApproved;
     invoice.approverName = _approverController.text.trim();
+    final settings = AppDatabase.settings;
+    settings.savedSignatureBytes = _signatureBytes;
+    settings.savedIsApproved = _isApproved;
+    settings.savedApproverName = invoice.approverName;
+    settings.save();
     if (_markAsPaid) {
       invoice.status = InvoiceStatus.paid;
       invoice.amountPaid = invoice.total;
@@ -782,13 +793,15 @@ class _SignaturePadState extends State<_SignaturePad> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              widget.initialBytes != null
-                  ? 'Draw below to replace the current signature'
-                  : 'Draw below',
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5, color: AppColors.textSecondary),
+            Expanded(
+              child: Text(
+                widget.initialBytes != null
+                    ? 'Draw below to replace the current signature'
+                    : 'Draw below',
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5, color: AppColors.textSecondary),
+              ),
             ),
             TextButton(onPressed: _clear, child: const Text('Clear')),
           ],
@@ -825,55 +838,98 @@ class _SignaturePadState extends State<_SignaturePad> {
   }
 }
 
-class _CustomerPickerSheet extends StatelessWidget {
+class _CustomerPickerSheet extends StatefulWidget {
   final List<Customer> customers;
   final String selectedId;
   const _CustomerPickerSheet({required this.customers, required this.selectedId});
 
   @override
+  State<_CustomerPickerSheet> createState() => _CustomerPickerSheetState();
+}
+
+class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
+  final _searchController = TextEditingController();
+  String _query = '';
+  bool _searchExpanded = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final accent = AppColors.themedPrimary(context);
+    final filtered = _query.isEmpty
+        ? widget.customers
+        : widget.customers
+            .where((c) => c.name.toLowerCase().contains(_query.toLowerCase()))
+            .toList();
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Select Customer', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         const SizedBox(height: 14),
+        CollapsibleSearchBar(
+          controller: _searchController,
+          expanded: _searchExpanded,
+          hintText: 'Search customer...',
+          onToggle: () => setState(() {
+            _searchExpanded = !_searchExpanded;
+            if (!_searchExpanded) {
+              _searchController.clear();
+              _query = '';
+            }
+          }),
+          onChanged: (v) => setState(() => _query = v),
+        ),
+        const SizedBox(height: 10),
         ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 340),
-          child: SingleChildScrollView(
-            child: Column(
-              children: customers
-                  .map((c) {
-                    final accent = AppColors.themedPrimary(context);
-                    return PressableScale(
-                      scaleDown: 0.99,
-                      onTap: () => Navigator.pop(context, c.id),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: c.id == selectedId ? accent.withOpacity(0.08) : Colors.transparent,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 18,
-                              backgroundColor: accent.withOpacity(0.14),
-                              child: Text(c.name.isNotEmpty ? c.name[0].toUpperCase() : '?',
-                                  style: TextStyle(color: accent, fontWeight: FontWeight.w800)),
+          constraints: const BoxConstraints(maxHeight: 300),
+          child: filtered.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 28),
+                  child: Center(
+                    child: Text('No customers found',
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                  ),
+                )
+              : SingleChildScrollView(
+                  child: Column(
+                    children: filtered
+                        .map((c) {
+                          return PressableScale(
+                            scaleDown: 0.99,
+                            onTap: () => Navigator.pop(context, c.id),
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: c.id == widget.selectedId ? accent.withOpacity(0.08) : Colors.transparent,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 18,
+                                    backgroundColor: accent.withOpacity(0.14),
+                                    child: Text(c.name.isNotEmpty ? c.name[0].toUpperCase() : '?',
+                                        style: TextStyle(color: accent, fontWeight: FontWeight.w800)),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(child: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700))),
+                                  if (c.id == widget.selectedId) Icon(Icons.check_circle_rounded, color: accent, size: 20),
+                                ],
+                              ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(child: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700))),
-                            if (c.id == selectedId) Icon(Icons.check_circle_rounded, color: accent, size: 20),
-                          ],
-                        ),
-                      ),
-                    );
-                  })
-                  .toList(),
-            ),
-          ),
+                          );
+                        })
+                        .toList(),
+                  ),
+                ),
         ),
         const SizedBox(height: 6),
         AppButton(

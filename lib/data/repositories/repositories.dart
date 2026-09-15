@@ -190,6 +190,19 @@ class ThemeModeController extends StateNotifier<int> {
 
 final themeModeProvider = StateNotifierProvider<ThemeModeController, int>((ref) => ThemeModeController());
 
+class LocaleController extends StateNotifier<String> {
+  LocaleController() : super(AppDatabase.settings.locale);
+
+  void set(String locale) {
+    final settings = AppDatabase.settings;
+    settings.locale = locale;
+    settings.save();
+    state = locale;
+  }
+}
+
+final localeProvider = StateNotifierProvider<LocaleController, String>((ref) => LocaleController());
+
 final businessProfileProvider = StateProvider<BusinessProfile>((ref) => AppDatabase.business);
 
 /// ------------------------- DERIVED / COMPUTED -------------------------

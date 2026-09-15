@@ -286,40 +286,12 @@ class InvoicePaper extends StatelessWidget {
     final Color headerInk = isModern ? Colors.white : _paperInk;
     final Color headerMuted = isModern ? Colors.white70 : _paperMuted;
 
-    return Container(
-      width: double.infinity,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border:
-            isMinimal ? Border.all(color: Colors.black.withOpacity(0.12)) : null,
-        boxShadow: isMinimal
-            ? null
-            : [
-                BoxShadow(
-                    color: Colors.black.withOpacity(0.10),
-                    blurRadius: 28,
-                    offset: const Offset(0, 12)),
-              ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Brand accent strip — Classic only; Modern uses a colored
-          // header card instead, Minimal stays monochrome.
-          if (!isModern && !isMinimal)
-            Container(height: 5, width: double.infinity, color: brandColor),
-          Padding(
-            padding: const EdgeInsets.all(22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Logo + invoice title | business address & contact —
-                // the address column moves below on narrow (phone-width)
-                // screens so the title never gets squeezed into a
-                // letter-by-letter wrap.
-                LayoutBuilder(builder: (context, constraints) {
+    // Logo + invoice title | business address & contact — the address
+    // column moves below on narrow (phone-width) screens so the title
+    // never gets squeezed into a letter-by-letter wrap. Extracted so the
+    // Modern template can render it full-bleed (no side/top inset)
+    // outside the card's normal content padding.
+    final headerSection = LayoutBuilder(builder: (context, constraints) {
                   final isNarrow = constraints.maxWidth < 380;
                   final hasAddressBlock = business.address.isNotEmpty ||
                       business.phone.isNotEmpty ||
@@ -455,15 +427,45 @@ class InvoicePaper extends StatelessWidget {
 
                   return Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: brandColor,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
+                    padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+                    color: brandColor,
                     child: titleRow,
                   );
-                }),
-                const SizedBox(height: 18),
+    });
+
+    return Container(
+      width: double.infinity,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border:
+            isMinimal ? Border.all(color: Colors.black.withOpacity(0.12)) : null,
+        boxShadow: isMinimal
+            ? null
+            : [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.10),
+                    blurRadius: 28,
+                    offset: const Offset(0, 12)),
+              ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Brand accent strip — Classic only; Modern's header itself
+          // already carries the brand color full-bleed, edge to edge,
+          // and Minimal stays monochrome.
+          if (!isModern && !isMinimal)
+            Container(height: 5, width: double.infinity, color: brandColor),
+          if (isModern) headerSection,
+          Padding(
+            padding: EdgeInsets.fromLTRB(22, isModern ? 18 : 22, 22, 22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (!isModern) headerSection,
+                if (!isModern) const SizedBox(height: 18),
                 const Divider(height: 1),
                 const SizedBox(height: 16),
 
@@ -676,57 +678,51 @@ class InvoicePaper extends StatelessWidget {
 
                           if (method == 'QRIS') {
                             final qrisId = business.qrisId;
-                            return Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 60,
-                                  height: 60,
-                                  padding: const EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border:
-                                        Border.all(color: Colors.black12),
-                                  ),
-                                  child: qrisId.isNotEmpty
-                                      ? QrImageView(
-                                          data: qrisId,
-                                          backgroundColor: Colors.white,
-                                          eyeStyle: const QrEyeStyle(
-                                              color: _paperInk),
-                                          dataModuleStyle:
-                                              const QrDataModuleStyle(
-                                                  color: _paperInk),
-                                        )
-                                      : const Icon(Icons.qr_code_2_rounded,
-                                          color: _paperMuted, size: 32),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text('QRIS: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 13,
-                                              color: _paperInk)),
-                                      const SizedBox(height: 3),
-                                      Text(
-                                        qrisId.isNotEmpty
-                                            ? qrisId
-                                            : 'Scan the QRIS code to pay.',
+                            return SizedBox(
+                              width: double.infinity,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  if (qrisId.isNotEmpty)
+                                    Text('MID: $qrisId',
+                                        textAlign: TextAlign.center,
                                         style: const TextStyle(
-                                            fontSize: 12.5,
-                                            fontWeight: FontWeight.w500,
-                                            color: _paperMuted),
-                                      ),
-                                    ],
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 13,
+                                            color: _paperInk)),
+                                  const SizedBox(height: 10),
+                                  Container(
+                                    width: 150,
+                                    height: 150,
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border:
+                                          Border.all(color: Colors.black12),
+                                    ),
+                                    child: qrisId.isNotEmpty
+                                        ? QrImageView(
+                                            data: qrisId,
+                                            backgroundColor: Colors.white,
+                                            eyeStyle: const QrEyeStyle(
+                                                color: _paperInk),
+                                            dataModuleStyle:
+                                                const QrDataModuleStyle(
+                                                    color: _paperInk),
+                                          )
+                                        : const Icon(Icons.qr_code_2_rounded,
+                                            color: _paperMuted, size: 48),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 10),
+                                  const Text('Scan the QRIS code to pay.',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: _paperMuted)),
+                                ],
+                              ),
                             );
                           }
 

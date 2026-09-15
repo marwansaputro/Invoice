@@ -5,11 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/animations/app_motion.dart';
+import '../../core/localization/app_strings.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/repositories.dart';
 import '../../models/models.dart';
+import '../reports/transaction_recap_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -82,11 +84,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _pickLanguage() async {
+    final settings = AppDatabase.settings;
+    final picked = await showAppBottomSheet<String>(context,
+        child: _LanguageSheet(current: settings.locale));
+    if (picked != null) {
+      ref.read(localeProvider.notifier).set(picked);
+      if (mounted) {
+        final l10n = AppStrings(picked);
+        AppSnackbar.show(context,
+            message:
+                '${l10n.language}: ${picked == 'id' ? l10n.languageIndonesian : l10n.languageEnglish}');
+        setState(() {});
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final business = AppDatabase.business;
     final settings = AppDatabase.settings;
     final themeMode = ref.watch(themeModeProvider);
+    final locale = ref.watch(localeProvider);
+    final l10n = AppStrings(locale);
 
     return SafeArea(
       child: ListView(
@@ -94,12 +114,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         children: [
           AnimatedEntry(
             offsetY: 10,
-            child: const Text('Settings',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            child: Text(l10n.settingsTitle,
+                style:
+                    const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
           ),
           const SizedBox(height: 4),
-          const Text('Manage your business & app preferences',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13.5)),
+          Text(l10n.manageBusinessPreferences,
+              style: const TextStyle(
+                  color: AppColors.textSecondary, fontSize: 13.5)),
           const SizedBox(height: 20),
           AnimatedEntry(
             delay: const Duration(milliseconds: 60),
@@ -134,8 +156,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             style: const TextStyle(
                                 fontWeight: FontWeight.w800, fontSize: 15)),
                         const SizedBox(height: 2),
-                        const Text('Tap to edit business profile',
-                            style: TextStyle(
+                        Text(l10n.tapToEditBusinessProfile,
+                            style: const TextStyle(
                                 color: AppColors.textSecondary, fontSize: 12)),
                       ],
                     ),
@@ -150,19 +172,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           AnimatedEntry(
             delay: const Duration(milliseconds: 100),
             child: _GroupedSettingsCard(
-              title: 'Business',
+              title: l10n.sectionBusiness,
               items: [
-                // _SettingsItem(
-                //     icon: Icons.badge_rounded,
-                //     label: 'Business Profile',
-                //     onTap: _editBusinessProfile),
                 _SettingsItem(
                     icon: Icons.receipt_long_rounded,
-                    label: 'Invoice Settings',
+                    label: l10n.invoiceSettings,
                     onTap: _editInvoiceSettings),
                 _SettingsItem(
                   icon: Icons.account_balance_rounded,
-                  label: 'Payment Methods',
+                  label: l10n.paymentMethods,
                   trailing: business.acceptedPaymentMethods.isEmpty
                       ? business.bankName
                       : business.acceptedPaymentMethods.length == 1
@@ -172,7 +190,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 _SettingsItem(
                   icon: Icons.percent_rounded,
-                  label: 'Tax Settings',
+                  label: l10n.taxSettings,
                   trailing: '${settings.defaultTaxPercent.toStringAsFixed(0)}%',
                   onTap: _editTaxSettings,
                 ),
@@ -183,32 +201,46 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           AnimatedEntry(
             delay: const Duration(milliseconds: 140),
             child: _GroupedSettingsCard(
-              title: 'Preferences',
+              title: l10n.sectionPreferences,
               items: [
                 _SettingsItem(
                     icon: Icons.attach_money_rounded,
-                    label: 'Currency',
+                    label: l10n.currency,
                     trailing: settings.currencySymbol,
                     onTap: _pickCurrency),
                 _SettingsItem(
                   icon: Icons.description_rounded,
-                  label: 'Invoice Template',
+                  label: l10n.invoiceTemplate,
                   trailing: kInvoiceTemplateNames[settings.invoiceTemplate],
                   onTap: _pickInvoiceTemplate,
                 ),
                 _SettingsItem(
-                  icon: Icons.notifications_none_rounded,
-                  label: 'Notifications',
-                  trailingWidget: Switch.adaptive(
-                    value: settings.notificationsEnabled,
-                    activeColor: AppColors.themedPrimary(context),
-                    onChanged: (v) {
-                      settings.notificationsEnabled = v;
-                      settings.save();
-                      setState(() {});
-                    },
-                  ),
+                  icon: Icons.language_rounded,
+                  label: l10n.language,
+                  trailing: locale == 'id'
+                      ? l10n.languageIndonesian
+                      : l10n.languageEnglish,
+                  onTap: _pickLanguage,
                 ),
+                _SettingsItem(
+                  icon: Icons.bar_chart_rounded,
+                  label: l10n.transactionRecap,
+                  onTap: () => Navigator.of(context).push(
+                      SlideFadeRoute(page: const TransactionRecapScreen())),
+                ),
+                // _SettingsItem(
+                //   icon: Icons.notifications_none_rounded,
+                //   label: l10n.notifications,
+                //   trailingWidget: Switch.adaptive(
+                //     value: settings.notificationsEnabled,
+                //     activeColor: AppColors.themedPrimary(context),
+                //     onChanged: (v) {
+                //       settings.notificationsEnabled = v;
+                //       settings.save();
+                //       setState(() {});
+                //     },
+                //   ),
+                // ),
               ],
             ),
           ),
@@ -219,12 +251,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Column(
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 12, bottom: 4),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12, bottom: 4),
                     child: Row(
                       children: [
-                        Text('Appearance',
-                            style: TextStyle(
+                        Text(l10n.sectionAppearance,
+                            style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.textSecondary,
@@ -237,7 +269,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     children: [
                       Expanded(
                           child: _ThemeOption(
-                              label: 'Light',
+                              label: l10n.light,
                               icon: Icons.light_mode_rounded,
                               selected: themeMode == 1,
                               onTap: () =>
@@ -245,7 +277,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                           child: _ThemeOption(
-                              label: 'Dark',
+                              label: l10n.dark,
                               icon: Icons.dark_mode_rounded,
                               selected: themeMode == 2,
                               onTap: () =>
@@ -253,7 +285,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                           child: _ThemeOption(
-                              label: 'System',
+                              label: l10n.system,
                               icon: Icons.smartphone_rounded,
                               selected: themeMode == 0,
                               onTap: () =>
@@ -269,19 +301,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           AnimatedEntry(
             delay: const Duration(milliseconds: 220),
             child: _GroupedSettingsCard(
-              title: 'Data',
+              title: l10n.sectionData,
               items: [
                 _SettingsItem(
                   icon: Icons.cloud_sync_rounded,
-                  label: 'Backup & Restore',
+                  label: l10n.backupRestore,
                   onTap: () => AppSnackbar.show(context,
-                      message:
-                          'All your data is already saved locally on this device.',
+                      message: l10n.dataAlreadySavedLocally,
                       icon: Icons.storage_rounded),
                 ),
                 _SettingsItem(
                   icon: Icons.info_outline_rounded,
-                  label: 'About',
+                  label: l10n.about,
                   onTap: () =>
                       showScaleFadeDialog(context, child: const _AboutDialog()),
                 ),
@@ -1014,6 +1045,69 @@ class _InvoiceTemplateSheet extends StatelessWidget {
   }
 }
 
+class _LanguageSheet extends StatelessWidget {
+  final String current;
+  const _LanguageSheet({required this.current});
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = AppColors.themedPrimary(context);
+    final l10n = AppStrings(current);
+    const options = [
+      (code: 'en', flag: '🇬🇧'),
+      (code: 'id', flag: '🇮🇩'),
+    ];
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.selectLanguage,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 4),
+        Text(l10n.selectLanguageDescription,
+            style: const TextStyle(
+                color: AppColors.textSecondary, fontSize: 12.5)),
+        const SizedBox(height: 16),
+        for (final option in options) ...[
+          PressableScale(
+            scaleDown: 0.99,
+            onTap: () => Navigator.pop(context, option.code),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                color: option.code == current
+                    ? accent.withOpacity(0.08)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                    color: option.code == current
+                        ? accent
+                        : Theme.of(context).dividerColor),
+              ),
+              child: Row(
+                children: [
+                  Text(option.flag, style: const TextStyle(fontSize: 20)),
+                  const SizedBox(width: 12),
+                  Text(
+                      option.code == 'id'
+                          ? l10n.languageIndonesian
+                          : l10n.languageEnglish,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w800, fontSize: 15)),
+                  const Spacer(),
+                  if (option.code == current)
+                    Icon(Icons.check_circle_rounded, color: accent, size: 18),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _AboutDialog extends StatelessWidget {
   const _AboutDialog();
 
@@ -1026,7 +1120,7 @@ class _AboutDialog extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 32),
           padding: const EdgeInsets.all(26),
           decoration: BoxDecoration(
-              color: Theme.of(context).cardTheme.color,
+              color: AppColors.solidSurface(context),
               borderRadius: BorderRadius.circular(24)),
           child: Column(
             mainAxisSize: MainAxisSize.min,

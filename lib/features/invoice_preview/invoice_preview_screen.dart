@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -201,7 +200,7 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen>
             CurvedAnimation(parent: _entrance, curve: const Interval(0, 0.3)),
         child: SafeArea(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(18, 12, 18, 140),
+            padding: const EdgeInsets.fromLTRB(4, 4, 4, 120),
             children: [
               AnimatedBuilder(
                 animation: _entrance,
@@ -224,7 +223,7 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen>
                     key: _previewKey,
                     child: Container(
                       color: const Color(0xFFF1F3F6),
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(4),
                       child: InvoicePaper(
                           invoice: invoice,
                           customer: customer,
@@ -366,7 +365,7 @@ class _PreparingPdfDialogState extends State<_PreparingPdfDialog>
       child: Container(
         padding: const EdgeInsets.all(28),
         decoration: BoxDecoration(
-            color: Theme.of(context).cardTheme.color,
+            color: AppColors.solidSurface(context),
             borderRadius: BorderRadius.circular(22)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -414,7 +413,7 @@ class _PdfReadyDialog extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 30),
           padding: const EdgeInsets.all(26),
           decoration: BoxDecoration(
-              color: Theme.of(context).cardTheme.color,
+              color: AppColors.solidSurface(context),
               borderRadius: BorderRadius.circular(24)),
           child: Column(
             mainAxisSize: MainAxisSize.min,
